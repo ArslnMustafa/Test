@@ -1,12 +1,17 @@
-// 3. Handwerker Marktplatz – Verifizierter Pool & detaillierte Profile
+// 3. Handwerker Marktplatz – verifizierter Pool & Profile (mit Datenbank)
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { ScreenHeader, Card, Badge, Button, ImagePlaceholder } from '../components/UI';
+import { InfoModal } from '../components/Modals';
+import { useStore } from '../store/store';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function CraftsmenScreen() {
-  // Rein visueller Tab-Wechsel (Hochwertig / Günstig)
-  const [tab, setTab] = useState('premium');
+  const { state, actions } = useStore();
+  const [tab, setTab] = useState('premium'); // Kategorie-Filter
+  const [profile, setProfile] = useState(null); // ausgewähltes Profil
+
+  const list = state.craftsmen.filter((c) => c.category === tab);
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -28,49 +33,57 @@ export default function CraftsmenScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Handwerker-Karte */}
-      <Card>
-        <View style={styles.rowCard}>
-          <View style={styles.avatar}><Text style={{ fontSize: 22 }}>👷</Text></View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.name}>Hassan Bau GmbH</Text>
-            <Text style={styles.sub}>Komplettsanierung</Text>
+      {list.map((c) => (
+        <Card key={c.id}>
+          <View style={styles.rowCard}>
+            <View style={styles.avatar}><Text style={{ fontSize: 22 }}>👷</Text></View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>{c.name}</Text>
+              <Text style={styles.sub}>{c.specialty} · {c.city}</Text>
+            </View>
+            <Badge label={`★ ${c.rating}`} tone="gold" />
           </View>
-          <Badge label="★ 4.9" tone="gold" />
-        </View>
-        <View style={styles.galleryRow}>
-          <ImagePlaceholder style={{ height: 70 }} />
-          <ImagePlaceholder style={{ height: 70 }} />
-        </View>
-        <Button label="Profil ansehen" tone="blue" />
-      </Card>
-
-      {/* Profil-Detail */}
-      <Text style={styles.sectionTitle}>← Profil</Text>
-      <Card style={{ alignItems: 'center' }}>
-        <View style={styles.avatarBig}><Text style={{ fontSize: 34 }}>👷</Text></View>
-        <Text style={styles.profileName}>Hassan Bau GmbH</Text>
-        <Badge label="✓ Verifiziert (موثّق)" tone="green" />
-
-        <Text style={styles.category}>Kategorie: Premium (Hochwertig)</Text>
-        <Text style={styles.desc}>
-          Spezialisiert auf Luxus-Sanierungen, Fliesenarbeiten und W-Fachwerk in Damaskus.
-        </Text>
-
-        <Text style={styles.worksLabel}>Letzte Arbeiten:</Text>
-        <View style={styles.worksGrid}>
-          <ImagePlaceholder style={styles.workCell} />
-          <ImagePlaceholder style={styles.workCell} />
-          <ImagePlaceholder style={styles.workCell} />
-          <ImagePlaceholder style={styles.workCell} />
-        </View>
-
-        <View style={{ width: '100%', marginTop: spacing.lg }}>
-          <Button label="Auftrag anfragen" tone="gold" />
-        </View>
-      </Card>
+          <View style={styles.galleryRow}>
+            <ImagePlaceholder style={{ height: 64 }} />
+            <ImagePlaceholder style={{ height: 64 }} />
+          </View>
+          <Button label="Profil ansehen" tone="blue" onPress={() => setProfile(c)} />
+        </Card>
+      ))}
 
       <View style={{ height: spacing.xl }} />
+
+      {/* Profil-Detail */}
+      <InfoModal visible={!!profile} title={profile?.name} onClose={() => setProfile(null)}>
+        {profile && (
+          <View style={{ alignItems: 'center' }}>
+            <View style={styles.avatarBig}><Text style={{ fontSize: 34 }}>👷</Text></View>
+            <Badge label="✓ Verifiziert (موثّق)" tone="green" />
+            <Text style={styles.category}>
+              Kategorie: {profile.category === 'premium' ? 'Premium (Hochwertig)' : 'Budget (Günstig)'}
+            </Text>
+            <Text style={styles.desc}>
+              Spezialisiert auf {profile.specialty} in {profile.city}. Bewertung ★ {profile.rating}.
+            </Text>
+
+            <Text style={styles.worksLabel}>Letzte Arbeiten:</Text>
+            <View style={styles.worksGrid}>
+              <ImagePlaceholder style={styles.workCell} />
+              <ImagePlaceholder style={styles.workCell} />
+              <ImagePlaceholder style={styles.workCell} />
+              <ImagePlaceholder style={styles.workCell} />
+            </View>
+
+            <View style={{ width: '100%', marginTop: spacing.lg }}>
+              <Button
+                label={profile.requested ? '✓ Anfrage gesendet' : 'Auftrag anfragen'}
+                tone={profile.requested ? 'green' : 'gold'}
+                onPress={() => { actions.requestCraftsman(profile.id); setProfile({ ...profile, requested: !profile.requested }); }}
+              />
+            </View>
+          </View>
+        )}
+      </InfoModal>
     </ScrollView>
   );
 }
@@ -85,29 +98,15 @@ const styles = StyleSheet.create({
   tabUnderline: { height: 2, backgroundColor: colors.blue, width: '80%', marginTop: spacing.sm, borderRadius: 2 },
 
   rowCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
-  avatar: {
-    width: 44, height: 44, borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center',
-  },
+  avatar: { width: 44, height: 44, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   name: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   sub: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
-
   galleryRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
 
-  sectionTitle: {
-    color: colors.textMuted, fontSize: font.body, fontWeight: '700',
-    marginHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: spacing.sm,
-  },
-
-  avatarBig: {
-    width: 76, height: 76, borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  profileName: { color: colors.text, fontSize: font.h2, fontWeight: '800', marginBottom: spacing.sm },
+  avatarBig: { width: 76, height: 76, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
   category: { color: colors.text, fontSize: font.body, fontWeight: '700', marginTop: spacing.lg, alignSelf: 'flex-start' },
   desc: { color: colors.textMuted, fontSize: font.small, lineHeight: 19, marginTop: spacing.sm, alignSelf: 'flex-start' },
   worksLabel: { color: colors.text, fontSize: font.body, fontWeight: '700', marginTop: spacing.lg, alignSelf: 'flex-start' },
   worksGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
-  workCell: { width: '47%', height: 80 },
+  workCell: { width: '47%', height: 72 },
 });

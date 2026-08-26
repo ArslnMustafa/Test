@@ -1,10 +1,36 @@
-// 2. Mietkontrolle & Sanktionierung – Eskalationsstufen für ausstehende Zahlungen
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+// 2. Mietkontrolle & Sanktionierung – Eskalationsstufen (mit Datenbank)
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { ScreenHeader, Card, Badge, Button } from '../components/UI';
+import { ActionSheet, InfoModal } from '../components/Modals';
+import { useStore } from '../store/store';
+import { eur, when } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function RentScreen() {
+  const { state, actions } = useStore();
+  const [actionFor, setActionFor] = useState(null); // Mieter für Aktions-Menü
+  const [logFor, setLogFor] = useState(null); // Mieter für Verlaufs-Anzeige
+
+  const buildOptions = (t) => [
+    {
+      key: 'mail', icon: '✉️', title: 'Mahnung per Mail', subtitle: 'Offizielle Warnung senden',
+      onPress: () => actions.rentAction(t.id, 'Mahnung per Mail gesendet'),
+    },
+    {
+      key: 'rel', icon: '📞', title: 'Verwandten kontaktieren', subtitle: `Kontakt: ${t.relative}`,
+      onPress: () => actions.rentAction(t.id, `Verwandten kontaktiert: ${t.relative}`),
+    },
+    {
+      key: 'inkasso', icon: '⚖️', title: 'Inkasso beauftragen', subtitle: 'Lokalen Anwalt einschalten', danger: true,
+      onPress: () => actions.rentAction(t.id, 'Inkasso/Anwalt beauftragt'),
+    },
+    {
+      key: 'paid', icon: '✅', title: 'Als bezahlt markieren', subtitle: 'Rückstand ausgleichen',
+      onPress: () => actions.markPaid(t.id),
+    },
+  ];
+
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <ScreenHeader
@@ -13,88 +39,78 @@ export default function RentScreen() {
         subtitle="Eskalationsstufen für ausstehende Zahlungen"
       />
 
-      {/* Bezahlt */}
-      <Card style={styles.rowCard}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name}>Ahmad K.</Text>
-          <Text style={styles.sub}>Villa Dummar</Text>
-        </View>
-        <Badge label="Bezahlt" tone="green" />
-      </Card>
+      {state.tenants.map((t) => {
+        const overdue = t.status === 'overdue';
+        return (
+          <Card key={t.id} style={overdue ? { borderColor: colors.redBorder, backgroundColor: '#1a1013' } : null}>
+            <View style={styles.rowBetween}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{t.name}</Text>
+                <Text style={styles.sub}>{t.propertyName}</Text>
+              </View>
+              <Badge label={overdue ? 'Überfällig' : 'Bezahlt'} tone={overdue ? 'red' : 'green'} />
+            </View>
 
-      {/* Überfällig */}
-      <Card style={{ borderColor: colors.redBorder, backgroundColor: '#1a1013' }}>
-        <View style={styles.rowBetween}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.name}>Omar S.</Text>
-            <Text style={styles.sub}>Apt. Al-Shahba</Text>
-          </View>
-          <Badge label="Überfällig" tone="red" />
-        </View>
-        <Text style={styles.overdue}>Seit 12 Tagen im Rückstand (€ 250)</Text>
-        <Button label="Aktion wählen" tone="red" outline />
-      </Card>
+            {overdue && (
+              <Text style={styles.overdue}>
+                Seit {t.overdueDays} Tagen im Rückstand ({eur(t.overdueEur)})
+              </Text>
+            )}
 
-      {/* Eskalations-Maßnahmen */}
-      <Text style={styles.sectionTitle}>Maßnahme wählen (Omar S.)</Text>
+            {/* Verlaufshinweis, wenn Aktionen protokolliert wurden */}
+            {t.log.length > 0 && (
+              <TouchableOpacity onPress={() => setLogFor(t)} activeOpacity={0.8}>
+                <Text style={styles.logHint}>
+                  🗒️ {t.log.length} Aktion(en) · zuletzt: {t.log[0].text} ›
+                </Text>
+              </TouchableOpacity>
+            )}
 
-      <Card style={styles.actionRow}>
-        <View style={styles.iconBox}><Text style={styles.icon}>✉️</Text></View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.actionTitle}>Mahnung per Mail</Text>
-          <Text style={styles.actionSub}>Offizielle Warnung senden</Text>
-        </View>
-      </Card>
-
-      <Card style={styles.actionRow}>
-        <View style={styles.iconBox}><Text style={styles.icon}>📞</Text></View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.actionTitle}>Verwandten kontaktieren</Text>
-          <Text style={styles.actionSub}>Kontakt: Onkel Mahmoud (+963 9…)</Text>
-        </View>
-      </Card>
-
-      <Card style={[styles.actionRow, { borderColor: colors.redBorder }]}>
-        <View style={[styles.iconBox, { backgroundColor: colors.redDark }]}><Text style={styles.icon}>⚖️</Text></View>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.actionTitle, { color: '#f87171' }]}>Inkasso beauftragen</Text>
-          <Text style={styles.actionSub}>Lokalen Anwalt einschalten</Text>
-        </View>
-      </Card>
+            {overdue ? (
+              <Button label="Aktion wählen" tone="red" outline onPress={() => setActionFor(t)} />
+            ) : (
+              <Button label="Aktion wählen" tone="ghost" onPress={() => setActionFor(t)} />
+            )}
+          </Card>
+        );
+      })}
 
       <View style={{ height: spacing.xl }} />
+
+      {/* Aktions-Menü (Eskalation) */}
+      <ActionSheet
+        visible={!!actionFor}
+        title={actionFor ? `Maßnahme wählen (${actionFor.name})` : ''}
+        options={actionFor ? buildOptions(actionFor) : []}
+        onClose={() => setActionFor(null)}
+      />
+
+      {/* Verlaufs-Anzeige */}
+      <InfoModal
+        visible={!!logFor}
+        title={logFor ? `Verlauf – ${logFor.name}` : ''}
+        onClose={() => setLogFor(null)}
+      >
+        {logFor && logFor.log.map((entry, i) => (
+          <View key={i} style={styles.logRow}>
+            <Text style={styles.logText}>{entry.text}</Text>
+            <Text style={styles.logDate}>{when(entry.at)}</Text>
+          </View>
+        ))}
+      </InfoModal>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
-
-  rowCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowBetween: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   name: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   sub: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
-  overdue: { color: '#f87171', fontSize: font.small, fontWeight: '600', marginVertical: spacing.md },
+  overdue: { color: '#f87171', fontSize: font.small, fontWeight: '600', marginTop: spacing.md, marginBottom: spacing.sm },
+  logHint: { color: colors.textMuted, fontSize: font.small, marginVertical: spacing.sm },
 
-  sectionTitle: {
-    color: colors.text,
-    fontSize: font.h3,
-    fontWeight: '700',
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    marginBottom: spacing.sm,
-  },
-
-  actionRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: { fontSize: 18 },
-  actionTitle: { color: colors.text, fontSize: font.body, fontWeight: '700' },
-  actionSub: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
+  logRow: { paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
+  logText: { color: colors.text, fontSize: font.body },
+  logDate: { color: colors.textFaint, fontSize: font.tiny, marginTop: 2 },
 });
