@@ -6,6 +6,10 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0a0e1a",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0e1a"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -16,6 +20,10 @@
       "package": "com.darna.app",
       "versionCode": 1,
       "adaptiveIcon": {
+        "backgroundColor": "#0a0e1a"
+      },
+      "splash": {
+        "resizeMode": "contain",
         "backgroundColor": "#0a0e1a"
       }
     },
