@@ -16,7 +16,8 @@
           "backgroundColor": "#0a0e1a",
           "resizeMode": "contain"
         }
-      ]
+      ],
+      "./plugins/withSplashColor"
     ],
     "ios": {
       "supportsTablet": true
