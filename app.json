@@ -9,10 +9,22 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0a0e1a",
+          "resizeMode": "contain"
+        }
+      ],
+      "./plugins/withSplashColor"
+    ],
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.darna.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#0a0e1a"
       }
