@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Card, Badge, Button, MessageCard } from '../components/UI';
 import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
-import { eur, when } from '../utils';
+import { eur, eur2, dmy, when } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
 // Menügruppen (deutsches Label + türkischer Referenzname als Untertitel)
@@ -61,6 +61,11 @@ export default function TenantMenuScreen() {
     .sort((a, b) => b.at - a.at);
   const nameFor = (id) => (state.users.find((u) => u.id === id)?.name) || 'Verwaltung';
 
+  // Eigene Schulden & Zahlungen (nach Datum)
+  const tid = currentUser?.tenantId;
+  const myDebts = (state.debtItems || []).filter((d) => d.tenantId === tid).sort((a, b) => a.dueDate - b.dueDate);
+  const myPayments = (state.payments || []).filter((p) => p.tenantId === tid).sort((a, b) => b.at - a.at);
+
   // ---- Untermenü-Ansicht ----
   if (activeItem) {
     return (
@@ -70,7 +75,7 @@ export default function TenantMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.detailTitle}>{activeItem.icon}  {activeItem.label}</Text>
 
-        {renderDetail(view, { tenant, setPayOpen, myMessages, nameFor })}
+        {renderDetail(view, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments })}
 
         <View style={{ height: spacing.xl }} />
 
@@ -102,7 +107,7 @@ export default function TenantMenuScreen() {
         <View key={g.title}>
           <Text style={styles.groupTitle}>{g.icon}  {g.title.toUpperCase()}</Text>
           {g.items.map((it) => {
-            const badge = itemBadge(it.key, tenant, { msgCount: myMessages.length });
+            const badge = itemBadge(it.key, tenant, { msgCount: myMessages.length, debtCount: myDebts.length, payCount: myPayments.length });
             return (
               <TouchableOpacity key={it.key} activeOpacity={0.8} onPress={() => setView(it.key)}>
                 <View style={styles.row}>
@@ -126,17 +131,93 @@ export default function TenantMenuScreen() {
 }
 
 // Kleiner Status-Badge an bestimmten Menüpunkten
-function itemBadge(key, tenant, { msgCount } = {}) {
+function itemBadge(key, tenant, { msgCount, debtCount, payCount } = {}) {
   if (key === 'messages' && msgCount > 0) return <Badge label={String(msgCount)} tone="blue" />;
+  if (key === 'debtlist' && debtCount > 0) return <Badge label={String(debtCount)} tone="gold" />;
+  if (key === 'payments' && payCount > 0) return <Badge label={String(payCount)} tone="blue" />;
   if (!tenant) return null;
   if (key === 'debts' && tenant.status === 'overdue') return <Badge label={eur(tenant.overdueEur)} tone="red" />;
   if (key === 'debts' && tenant.status === 'paid') return <Badge label="0 €" tone="green" />;
-  if (key === 'payments' && tenant.log.length > 0) return <Badge label={String(tenant.log.length)} tone="blue" />;
   return null;
 }
 
+const STATUS_LABEL = {
+  this_month: { label: 'Diesen Monat', color: colors.blueSoft },
+  overdue: { label: 'Überfällig', color: '#f87171' },
+  upcoming: { label: 'Bevorstehend', color: colors.textMuted },
+};
+
 // Inhalt je Menüpunkt (mit Daten gefüllt oder Platzhalter)
-function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor }) {
+function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments }) {
+  // Borç Listesi – detaillierte Schuldenposten mit Summen
+  if (key === 'debtlist') {
+    if (!myDebts || myDebts.length === 0) return <ComingSoon note="Keine offenen Schuldenposten." />;
+    const sum = myDebts.reduce((a, d) => a + d.amountEur, 0);
+    const sur = myDebts.reduce((a, d) => a + d.surchargeEur, 0);
+    const st = STATUS_LABEL;
+    return (
+      <View>
+        {myDebts.map((d) => {
+          const s = st[d.status] || st.this_month;
+          return (
+            <Card key={d.id}>
+              <View style={styles.between}>
+                <View>
+                  <Text style={styles.hLabel}>STATUS</Text>
+                  <Text style={[styles.hValue, { color: s.color }]}>{s.label}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.hLabel}>FÄLLIG AM</Text>
+                  <Text style={styles.hValue}>{dmy(d.dueDate)}</Text>
+                </View>
+              </View>
+              <View style={styles.dashed} />
+              <Text style={styles.hLabel}>INFO</Text>
+              <Text style={styles.infoText}>{d.info}</Text>
+              <View style={styles.dashed} />
+              <View style={styles.threeCol}>
+                <View><Text style={styles.hLabel}>BETRAG</Text><Text style={styles.colVal}>{eur2(d.amountEur)}</Text></View>
+                <View style={{ alignItems: 'center' }}><Text style={styles.hLabel}>ZUSCHLAG</Text><Text style={styles.colVal}>{eur2(d.surchargeEur)}</Text></View>
+                <View style={{ alignItems: 'flex-end' }}><Text style={styles.hLabel}>ZU ZAHLEN</Text><Text style={styles.colVal}>{eur2(d.amountEur + d.surchargeEur)}</Text></View>
+              </View>
+            </Card>
+          );
+        })}
+        <Card>
+          <TotalRow label="Gesamtbetrag" value={eur2(sum)} />
+          <TotalRow label="Gesamt-Zuschlag" value={eur2(sur)} />
+          <TotalRow label="Gesamt zu zahlen" value={eur2(sum + sur)} strong />
+        </Card>
+      </View>
+    );
+  }
+
+  // Ödeme Listesi – geleistete Zahlungen mit Summe
+  if (key === 'payments') {
+    if (!myPayments || myPayments.length === 0) return <ComingSoon note="Noch keine Zahlungen erfasst." />;
+    const total = myPayments.reduce((a, p) => a + p.amountEur, 0);
+    return (
+      <View>
+        {myPayments.map((p) => (
+          <Card key={p.id}>
+            <View style={styles.between}>
+              <View><Text style={styles.hLabel}>DATUM</Text><Text style={styles.hValue}>{dmy(p.at)}</Text></View>
+              <View style={{ alignItems: 'flex-end' }}><Text style={styles.hLabel}>ZAHLART</Text><Text style={styles.hValue}>{p.method === 'Bank' ? 'Bank' : 'Kasse'}</Text></View>
+            </View>
+            <View style={styles.dashed} />
+            <View style={styles.between}>
+              <View style={{ flex: 1 }}><Text style={styles.hLabel}>BELEG-NR.</Text><Text style={styles.receipt}>{p.receiptNo}</Text></View>
+              <View style={{ alignItems: 'flex-end' }}><Text style={styles.hLabel}>BEZAHLT</Text><Text style={styles.paidVal}>{eur2(p.amountEur)}</Text></View>
+            </View>
+          </Card>
+        ))}
+        <Card>
+          <TotalRow label="Gesamt bezahlt" value={eur2(total)} strong />
+        </Card>
+      </View>
+    );
+  }
+
   if (key === 'messages') {
     if (!myMessages || myMessages.length === 0) return <ComingSoon note="Sie haben noch keine Nachrichten." />;
     return (
@@ -194,6 +275,15 @@ function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor }) {
   return <ComingSoon />;
 }
 
+function TotalRow({ label, value, strong }) {
+  return (
+    <View style={styles.totalRow}>
+      <Text style={[styles.totalLabel, strong && { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.totalValue, strong && { color: colors.goldSoft, fontSize: font.h3 }]}>{value}</Text>
+    </View>
+  );
+}
+
 function ComingSoon({ note }) {
   return (
     <Card style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
@@ -247,4 +337,17 @@ const styles = StyleSheet.create({
 
   soonTitle: { color: colors.text, fontSize: font.h3, fontWeight: '700' },
   soonSub: { color: colors.textMuted, fontSize: font.small, marginTop: spacing.xs, textAlign: 'center' },
+
+  // Borç / Ödeme Listesi
+  hLabel: { color: colors.textFaint, fontSize: font.tiny, fontWeight: '700', letterSpacing: 0.5 },
+  hValue: { color: colors.text, fontSize: font.body, fontWeight: '700', marginTop: 1 },
+  dashed: { height: 1, borderBottomWidth: 1, borderStyle: 'dashed', borderColor: colors.border, marginVertical: spacing.sm },
+  infoText: { color: colors.text, fontSize: font.body, marginTop: 2, lineHeight: 20 },
+  threeCol: { flexDirection: 'row', justifyContent: 'space-between' },
+  colVal: { color: colors.text, fontSize: font.body, fontWeight: '800', marginTop: 2, fontVariant: ['tabular-nums'] },
+  receipt: { color: colors.textMuted, fontSize: font.body, marginTop: 2, fontVariant: ['tabular-nums'] },
+  paidVal: { color: colors.greenText, fontSize: font.h3, fontWeight: '800', marginTop: 2, fontVariant: ['tabular-nums'] },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.xs },
+  totalLabel: { color: colors.textMuted, fontSize: font.body, fontWeight: '600' },
+  totalValue: { color: colors.text, fontSize: font.body, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });

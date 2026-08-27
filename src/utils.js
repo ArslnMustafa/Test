@@ -6,6 +6,21 @@ export function eur(n) {
   return '€ ' + v.toLocaleString('de-DE');
 }
 
+// Euro mit zwei Nachkommastellen, z. B. "€ 200,00"
+export function eur2(n) {
+  const v = Number(n) || 0;
+  return '€ ' + v.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Nur Datum, z. B. "31.08.2026"
+export function dmy(ts) {
+  try {
+    return new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch (e) {
+    return '';
+  }
+}
+
 // Menschlich lesbares Datum, z. B. "26.08.2026, 10:45"
 export function when(ts) {
   try {

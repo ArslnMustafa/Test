@@ -66,6 +66,25 @@ export const SEED = {
     { id: 'j4', title: 'Fliesen Küche',            propertyName: 'Penthouse Latakia',   city: 'Latakia',  craftsmanId: 'c1', budgetEur: 1800, status: 'done' },
   ],
 
+  // Offene Schuldenposten je Mieter (Borç Listesi)
+  // status: this_month | overdue | upcoming
+  debtItems: [
+    { id: 'd1', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Miete August 2026', amountEur: 250, surchargeEur: 0 },
+    { id: 'd2', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-30T00:00:00'), info: 'Inventar – Feuerlöscher Wartung & Füllung', amountEur: 20, surchargeEur: 0 },
+    { id: 'd3', tenantId: 't2', status: 'overdue',    dueDate: Date.parse('2026-07-31T00:00:00'), info: 'Nebenkosten Juli 2026', amountEur: 90, surchargeEur: 5 },
+  ],
+
+  // Geleistete Zahlungen je Mieter (Ödeme Listesi). method: Kasse | Bank
+  payments: [
+    { id: 'pay1', tenantId: 't2', at: Date.parse('2026-03-16T00:00:00'), method: 'Kasse', receiptNo: '269903612200919', amountEur: 850 },
+    { id: 'pay2', tenantId: 't2', at: Date.parse('2026-02-20T00:00:00'), method: 'Kasse', receiptNo: '226224575830913', amountEur: 850 },
+    { id: 'pay3', tenantId: 't2', at: Date.parse('2026-01-26T00:00:00'), method: 'Kasse', receiptNo: '215035944994416', amountEur: 850 },
+    { id: 'pay4', tenantId: 't2', at: Date.parse('2025-12-22T00:00:00'), method: 'Bank',  receiptNo: '193260440748022', amountEur: 600 },
+    { id: 'pay5', tenantId: 't2', at: Date.parse('2025-11-04T00:00:00'), method: 'Bank',  receiptNo: '80855271285605',  amountEur: 350 },
+    { id: 'pay6', tenantId: 't2', at: Date.parse('2025-09-19T00:00:00'), method: 'Bank',  receiptNo: '72794789863419',  amountEur: 700 },
+    { id: 'pay7', tenantId: 't2', at: Date.parse('2025-06-27T00:00:00'), method: 'Bank',  receiptNo: '60547808033527',  amountEur: 250 },
+  ],
+
   // Nachrichten (Verwaltung -> Bewohner). toUserId = Empfänger, fromUserId = Absender
   messages: [
     { id: 'm1', toUserId: 'u3', fromUserId: 'u1', at: Date.parse('2026-08-24T15:18:00'),
