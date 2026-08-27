@@ -23,3 +23,25 @@ export function modeLabel(mode) {
   if (mode === 'vacant') return 'Leerstehend';
   return 'Langzeitmiete';
 }
+
+// Deutsches Label für eine Benutzerrolle
+export function roleLabel(role) {
+  return ({
+    tenant: 'Mieter',
+    owner: 'Eigentümer',
+    company: 'Firma',
+    worker: 'Handwerker',
+    admin: 'Administrator',
+  })[role] || role;
+}
+
+// Passendes Icon je Rolle
+export function roleIcon(role) {
+  return ({
+    tenant: '🔑',
+    owner: '🏠',
+    company: '🏢',
+    worker: '👷',
+    admin: '🛡️',
+  })[role] || '👤';
+}

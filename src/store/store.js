@@ -15,10 +15,19 @@ const initialState = { ...SEED, loaded: false };
 function reducer(state, action) {
   switch (action.type) {
     case 'HYDRATE':
-      return { ...action.payload, loaded: true };
+      // SEED zuerst, damit neue Felder (z. B. users) auch bei alten
+      // gespeicherten Daten vorhanden sind (Migration).
+      return { ...SEED, ...action.payload, loaded: true };
 
     case 'READY':
       return { ...state, loaded: true };
+
+    // ---- Authentifizierung ----
+    case 'LOGIN':
+      return { ...state, currentUserId: action.userId };
+
+    case 'LOGOUT':
+      return { ...state, currentUserId: null };
 
     // ---- Immobilien ----
     case 'ADD_PROPERTY':
@@ -166,11 +175,27 @@ export function StoreProvider({ children }) {
 
     joinFund: (id) => dispatch({ type: 'JOIN_FUND', id }),
 
+    // ---- Login / Logout ----
+    // Prüft E-Mail + Passwort gegen die Benutzerliste.
+    // Gibt true bei Erfolg zurück, sonst false.
+    login: (email, password) => {
+      const e = String(email || '').trim().toLowerCase();
+      const user = (state.users || []).find(
+        (u) => u.email.toLowerCase() === e && u.password === password
+      );
+      if (user) dispatch({ type: 'LOGIN', userId: user.id });
+      return !!user;
+    },
+    logout: () => dispatch({ type: 'LOGOUT' }),
+
     resetDb: () => dispatch({ type: 'RESET_DB' }),
   };
 
+  // Aktuell angemeldeter Benutzer (oder null)
+  const currentUser = (state.users || []).find((u) => u.id === state.currentUserId) || null;
+
   return (
-    <StoreContext.Provider value={{ state, actions }}>
+    <StoreContext.Provider value={{ state, actions, currentUser }}>
       {children}
     </StoreContext.Provider>
   );

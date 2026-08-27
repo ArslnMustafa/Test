@@ -8,8 +8,10 @@ import RentScreen from './src/screens/RentScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
 import FundScreen from './src/screens/FundScreen';
+import LoginScreen from './src/screens/LoginScreen';
 import { StoreProvider, useStore } from './src/store/store';
-import { colors, spacing, font } from './src/theme';
+import { roleLabel, roleIcon } from './src/utils';
+import { colors, spacing, font, radius } from './src/theme';
 
 const TABS = [
   { key: 'home', label: 'Home', icon: '🏠', screen: HomeScreen },
@@ -20,7 +22,7 @@ const TABS = [
 ];
 
 function Shell() {
-  const { state } = useStore();
+  const { state, actions, currentUser } = useStore();
   const [active, setActive] = useState('home');
   const ActiveScreen = TABS.find((t) => t.key === active).screen;
 
@@ -34,8 +36,27 @@ function Shell() {
     );
   }
 
+  // Nicht angemeldet → Startbildschirm (Login)
+  if (!currentUser) {
+    return <LoginScreen />;
+  }
+
   return (
     <>
+      {/* Kopfzeile: angemeldeter Benutzer + Abmelden */}
+      <View style={styles.topBar}>
+        <View style={styles.userChip}>
+          <Text style={styles.userIcon}>{roleIcon(currentUser.role)}</Text>
+          <View>
+            <Text style={styles.userName}>{currentUser.name}</Text>
+            <Text style={styles.userRole}>{roleLabel(currentUser.role)}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8} onPress={actions.logout}>
+          <Text style={styles.logoutText}>Abmelden</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.body}>
         <ActiveScreen />
       </View>
@@ -73,6 +94,30 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   loadingText: { color: colors.textMuted, fontSize: font.body },
+
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  userChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  userIcon: { fontSize: 22 },
+  userName: { color: colors.text, fontSize: font.small, fontWeight: '700' },
+  userRole: { color: colors.gold, fontSize: font.tiny, fontWeight: '600' },
+  logoutBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  logoutText: { color: colors.textMuted, fontSize: font.small, fontWeight: '700' },
 
   tabBar: {
     flexDirection: 'row',

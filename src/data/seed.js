@@ -44,4 +44,18 @@ export const SEED = {
     { id: 'f2', title: 'Gewerbezentrum Aleppo', subtitle: 'Wiederaufbau Fonds #2', goalEur: 750000, raisedEur: 300000, investors: 60, maxInvestors: 150, minMonthlyEur: 750, joined: false },
     { id: 'f3', title: 'Solarpark Damaskus-Umland', subtitle: 'Grüne Energie Fonds #3', goalEur: 400000, raisedEur: 90000, investors: 22, maxInvestors: 80, minMonthlyEur: 300, joined: false },
   ],
+
+  // Benutzerkonten (Login) – je ein Beispiel pro Rolle.
+  // Rollen: tenant (Mieter), owner (Eigentümer), company (Firma),
+  //         worker (Handwerker), admin (Administrator/Verwalter)
+  users: [
+    { id: 'u1', name: 'Mustafa Arslan', email: 'admin@darna.app',  password: 'admin123',  role: 'admin' },
+    { id: 'u2', name: 'Khaled Haddad',  email: 'owner@darna.app',  password: 'owner123',  role: 'owner' },
+    { id: 'u3', name: 'Omar Said',      email: 'tenant@darna.app', password: 'tenant123', role: 'tenant' },
+    { id: 'u4', name: 'Hassan Bau GmbH', email: 'firma@darna.app', password: 'firma123',  role: 'company' },
+    { id: 'u5', name: 'Abu Yusuf',      email: 'worker@darna.app', password: 'worker123', role: 'worker' },
+  ],
+
+  // Aktuell angemeldeter Benutzer (null = ausgeloggt, zeigt Login-Screen)
+  currentUserId: null,
 };
