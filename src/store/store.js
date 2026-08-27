@@ -120,6 +120,13 @@ function reducer(state, action) {
         }),
       };
 
+    // ---- Aufträge (Handwerker/Firma) ----
+    case 'SET_JOB_STATUS':
+      return {
+        ...state,
+        jobs: (state.jobs || []).map((j) => (j.id === action.id ? { ...j, status: action.status } : j)),
+      };
+
     case 'RESET_DB':
       return { ...SEED, loaded: true };
 
@@ -199,6 +206,10 @@ export function StoreProvider({ children }) {
 
     joinFund: (id) => dispatch({ type: 'JOIN_FUND', id }),
     leaveFund: (id) => dispatch({ type: 'LEAVE_FUND', id }),
+
+    // Aufträge: annehmen / als erledigt markieren
+    acceptJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'accepted' }),
+    completeJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'done' }),
 
     // ---- Login / Logout ----
     // Prüft E-Mail + Passwort gegen die Benutzerliste.

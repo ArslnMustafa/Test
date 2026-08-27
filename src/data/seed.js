@@ -51,9 +51,19 @@ export const SEED = {
   users: [
     { id: 'u1', name: 'Mustafa Arslan', email: 'admin@darna.app',  password: 'admin123',  role: 'admin' },
     { id: 'u2', name: 'Khaled Haddad',  email: 'owner@darna.app',  password: 'owner123',  role: 'owner' },
-    { id: 'u3', name: 'Omar Said',      email: 'tenant@darna.app', password: 'tenant123', role: 'tenant' },
-    { id: 'u4', name: 'Hassan Bau GmbH', email: 'firma@darna.app', password: 'firma123',  role: 'company' },
-    { id: 'u5', name: 'Abu Yusuf',      email: 'worker@darna.app', password: 'worker123', role: 'worker' },
+    // tenantId verknüpft den Mieter-Login mit seinem Miet-Datensatz
+    { id: 'u3', name: 'Omar Said',      email: 'tenant@darna.app', password: 'tenant123', role: 'tenant', tenantId: 't2' },
+    // craftsmanId verknüpft Firma/Handwerker-Login mit dem Marktplatz-Profil
+    { id: 'u4', name: 'Hassan Bau GmbH', email: 'firma@darna.app', password: 'firma123',  role: 'company', craftsmanId: 'c1' },
+    { id: 'u5', name: 'Abu Yusuf',      email: 'worker@darna.app', password: 'worker123', role: 'worker', craftsmanId: 'c4' },
+  ],
+
+  // Aufträge für Handwerker/Firmen (Job-Anfragen)
+  jobs: [
+    { id: 'j1', title: 'Bad-Sanierung',            propertyName: 'Villa Dummar',        city: 'Damaskus', craftsmanId: 'c1', budgetEur: 3500, status: 'new' },
+    { id: 'j2', title: 'Elektrik prüfen',          propertyName: 'Apt. Al-Malki',       city: 'Damaskus', craftsmanId: 'c4', budgetEur: 600,  status: 'new' },
+    { id: 'j3', title: 'Malerarbeiten Wohnzimmer', propertyName: 'Studio Homs-Zentrum', city: 'Homs',     craftsmanId: 'c4', budgetEur: 900,  status: 'accepted' },
+    { id: 'j4', title: 'Fliesen Küche',            propertyName: 'Penthouse Latakia',   city: 'Latakia',  craftsmanId: 'c1', budgetEur: 1800, status: 'done' },
   ],
 
   // Aktuell angemeldeter Benutzer (null = ausgeloggt, zeigt Login-Screen)

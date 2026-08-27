@@ -5,26 +5,39 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Plat
 
 import HomeScreen from './src/screens/HomeScreen';
 import RentScreen from './src/screens/RentScreen';
+import MyRentScreen from './src/screens/MyRentScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
+import JobsScreen from './src/screens/JobsScreen';
 import FundScreen from './src/screens/FundScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { StoreProvider, useStore } from './src/store/store';
 import { roleLabel, roleIcon } from './src/utils';
 import { colors, spacing, font, radius } from './src/theme';
 
-const TABS = [
-  { key: 'home', label: 'Home', icon: '🏠', screen: HomeScreen },
-  { key: 'rent', label: 'Miete', icon: '📋', screen: RentScreen },
-  { key: 'market', label: 'Markt', icon: '🏢', screen: MarketScreen },
-  { key: 'crafts', label: 'Handwerker', icon: '👷', screen: CraftsmenScreen },
-  { key: 'fund', label: 'Fonds', icon: '📈', screen: FundScreen },
-];
+// Alle verfügbaren Tabs
+const TAB_DEFS = {
+  home:   { key: 'home',   label: 'Home',       icon: '🏠', screen: HomeScreen },
+  rent:   { key: 'rent',   label: 'Miete',      icon: '📋', screen: RentScreen },
+  myrent: { key: 'myrent', label: 'Meine Miete', icon: '🔑', screen: MyRentScreen },
+  market: { key: 'market', label: 'Markt',      icon: '🏢', screen: MarketScreen },
+  crafts: { key: 'crafts', label: 'Handwerker', icon: '👷', screen: CraftsmenScreen },
+  jobs:   { key: 'jobs',   label: 'Aufträge',   icon: '🛠️', screen: JobsScreen },
+  fund:   { key: 'fund',   label: 'Fonds',      icon: '📈', screen: FundScreen },
+};
+
+// Welche Tabs sieht welche Rolle
+const ROLE_TABS = {
+  admin:   ['home', 'rent', 'market', 'crafts', 'fund'],
+  owner:   ['home', 'rent', 'market', 'crafts', 'fund'],
+  tenant:  ['myrent', 'market', 'fund'],
+  worker:  ['jobs', 'market'],
+  company: ['jobs', 'market'],
+};
 
 function Shell() {
   const { state, actions, currentUser } = useStore();
-  const [active, setActive] = useState('home');
-  const ActiveScreen = TABS.find((t) => t.key === active).screen;
+  const [active, setActive] = useState(null);
 
   // Kurzer Ladezustand, bis die Datenbank aus dem Speicher gelesen ist
   if (!state.loaded) {
@@ -40,6 +53,11 @@ function Shell() {
   if (!currentUser) {
     return <LoginScreen />;
   }
+
+  // Tabs je nach Rolle; aktiver Tab fällt auf den ersten gültigen zurück
+  const tabs = (ROLE_TABS[currentUser.role] || ROLE_TABS.admin).map((k) => TAB_DEFS[k]);
+  const activeKey = tabs.find((t) => t.key === active) ? active : tabs[0].key;
+  const ActiveScreen = tabs.find((t) => t.key === activeKey).screen;
 
   return (
     <>
@@ -61,10 +79,10 @@ function Shell() {
         <ActiveScreen />
       </View>
 
-      {/* Untere Navigationsleiste */}
+      {/* Untere Navigationsleiste (je nach Rolle) */}
       <View style={styles.tabBar}>
-        {TABS.map((tab) => {
-          const isActive = tab.key === active;
+        {tabs.map((tab) => {
+          const isActive = tab.key === activeKey;
           return (
             <TouchableOpacity key={tab.key} style={styles.tabItem} activeOpacity={0.7} onPress={() => setActive(tab.key)}>
               <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>{tab.icon}</Text>
