@@ -88,6 +88,30 @@ export function ActionSheet({ visible, title, options = [], onClose }) {
   );
 }
 
+// Bestätigungs-Dialog ("Sind Sie sicher?")
+export function ConfirmModal({ visible, title, message, confirmLabel = 'Bestätigen', cancelLabel = 'Abbrechen', danger = false, onConfirm, onClose }) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Backdrop onClose={onClose}>
+        {!!title && <Text style={styles.title}>{title}</Text>}
+        {!!message && <Text style={styles.message}>{message}</Text>}
+        <View style={styles.row}>
+          <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={onClose} activeOpacity={0.8}>
+            <Text style={styles.btnGhostText}>{cancelLabel}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btn, danger ? styles.btnDanger : styles.btnPrimary]}
+            activeOpacity={0.8}
+            onPress={() => { onConfirm && onConfirm(); onClose(); }}
+          >
+            <Text style={danger ? styles.btnDangerText : styles.btnPrimaryText}>{confirmLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </Backdrop>
+    </Modal>
+  );
+}
+
 // Einfacher Info-/Detail-Dialog mit freiem Inhalt
 export function InfoModal({ visible, title, children, onClose }) {
   return (
@@ -115,6 +139,7 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
   },
   title: { color: colors.text, fontSize: font.h3, fontWeight: '800', marginBottom: spacing.md },
+  message: { color: colors.textMuted, fontSize: font.body, lineHeight: 20, marginBottom: spacing.lg },
 
   label: { color: colors.textMuted, fontSize: font.small, marginBottom: spacing.xs, fontWeight: '600' },
   input: {
@@ -134,6 +159,8 @@ const styles = StyleSheet.create({
   btnGhostText: { color: colors.text, fontWeight: '700', fontSize: font.body },
   btnPrimary: { backgroundColor: colors.blue },
   btnPrimaryText: { color: '#fff', fontWeight: '700', fontSize: font.body },
+  btnDanger: { backgroundColor: colors.red },
+  btnDangerText: { color: '#2a0708', fontWeight: '700', fontSize: font.body },
 
   action: {
     flexDirection: 'row',

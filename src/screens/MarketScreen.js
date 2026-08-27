@@ -8,12 +8,21 @@ import { eur } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function MarketScreen() {
-  const { state, actions } = useStore();
+  const { state, actions, currentUser } = useStore();
   const [addOpen, setAddOpen] = useState(false);
   const [detail, setDetail] = useState(null);
   const [onlyVerified, setOnlyVerified] = useState(false); // Filter
 
-  const listings = onlyVerified ? state.listings.filter((l) => l.verifiedTitle) : state.listings;
+  const role = currentUser?.role;
+  const isAdmin = role === 'admin';
+  const canAdd = role === 'owner' || role === 'admin'; // Eigentümer & Verwalter dürfen einstellen
+  const canSeePending = role === 'owner' || role === 'admin'; // sonst nur freigegebene
+
+  // Sichtbare Angebote: freigegebene für alle; ausstehende nur für Eigentümer/Verwalter
+  let listings = state.listings.filter((l) => l.approved || canSeePending);
+  if (onlyVerified) listings = listings.filter((l) => l.verifiedTitle);
+
+  const pendingCount = state.listings.filter((l) => !l.approved).length;
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -27,16 +36,27 @@ export default function MarketScreen() {
         <TouchableOpacity onPress={() => setOnlyVerified((v) => !v)} activeOpacity={0.8}>
           <SmallButton label={onlyVerified ? '✓ Nur verifiziert' : 'Filter ⚙︎'} tone={onlyVerified ? 'green' : 'gold'} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setAddOpen(true)} activeOpacity={0.8}>
-          <SmallButton label="+ Angebot" tone="blue" />
-        </TouchableOpacity>
+        {canAdd && (
+          <TouchableOpacity onPress={() => setAddOpen(true)} activeOpacity={0.8}>
+            <SmallButton label="+ Angebot" tone="blue" />
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* Hinweis für den Verwalter: wie viele Angebote auf Freigabe warten */}
+      {isAdmin && pendingCount > 0 && (
+        <View style={styles.pendingHint}>
+          <Text style={styles.pendingHintText}>
+            ⏳ {pendingCount} Angebot(e) warten auf Ihre Freigabe.
+          </Text>
+        </View>
+      )}
 
       {listings.map((l) => (
         <Card key={l.id} style={{ padding: 0, overflow: 'hidden' }}>
           <ImagePlaceholder style={{ height: 140, borderRadius: 0 }} />
           <View style={styles.badgeFloat}>
-            <Badge label="Zu Verkaufen" tone="blue" />
+            <Badge label={l.approved ? 'Zu Verkaufen' : '⏳ Wartet auf Freigabe'} tone={l.approved ? 'blue' : 'gold'} />
           </View>
           <View style={styles.cardBody}>
             <Text style={styles.propTitle}>{l.title}</Text>
@@ -48,6 +68,18 @@ export default function MarketScreen() {
                 <SmallButton label="Details ›" tone="ghost" />
               </TouchableOpacity>
             </View>
+
+            {/* Verwalter-Freigabe für ausstehende Angebote */}
+            {isAdmin && !l.approved && (
+              <View style={styles.approveRow}>
+                <View style={{ flex: 1 }}>
+                  <Button label="Genehmigen" tone="green" onPress={() => actions.approveListing(l.id)} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Button label="Ablehnen" tone="red" outline onPress={() => actions.rejectListing(l.id)} />
+                </View>
+              </View>
+            )}
           </View>
         </Card>
       ))}
@@ -85,15 +117,15 @@ export default function MarketScreen() {
       {/* Dialog: Angebot hinzufügen */}
       <FormModal
         visible={addOpen}
-        title="Angebot einstellen"
-        submitLabel="Einstellen"
+        title={isAdmin ? 'Angebot einstellen' : 'Angebot einreichen (Freigabe nötig)'}
+        submitLabel={isAdmin ? 'Einstellen' : 'Zur Freigabe senden'}
         fields={[
           { key: 'title', label: 'Titel', placeholder: 'z. B. Penthouse Al-Malki' },
           { key: 'city', label: 'Stadt', placeholder: 'z. B. Damaskus' },
           { key: 'sqm', label: 'Fläche (m²)', placeholder: 'z. B. 120', numeric: true },
           { key: 'priceEur', label: 'Preis (€)', placeholder: 'z. B. 185000', numeric: true },
         ]}
-        onSubmit={(v) => actions.addListing(v)}
+        onSubmit={(v) => actions.addListing(v, isAdmin)}
         onClose={() => setAddOpen(false)}
       />
 
@@ -128,6 +160,12 @@ function DetailRow({ label, value }) {
 const styles = StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   toolbar: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginHorizontal: spacing.lg, marginBottom: spacing.sm },
+  pendingHint: {
+    backgroundColor: '#2a1f08', borderRadius: radius.md, borderWidth: 1, borderColor: '#4a380f',
+    padding: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.sm,
+  },
+  pendingHintText: { color: colors.goldSoft, fontSize: font.small, fontWeight: '700' },
+  approveRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
 
   badgeFloat: { position: 'absolute', top: spacing.md, left: spacing.md },
   cardBody: { padding: spacing.lg },

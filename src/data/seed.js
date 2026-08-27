@@ -29,13 +29,13 @@ export const SEED = {
     { id: 'c5', name: 'Schnell & Günstig', specialty: 'Kleinreparaturen', rating: 3.9, category: 'budget', verified: true, city: 'Latakia', requested: false },
   ],
 
-  // Immobilienmarkt (zum Verkauf)
+  // Immobilienmarkt (zum Verkauf). approved:true = vom Verwalter freigegeben (öffentlich sichtbar)
   listings: [
-    { id: 'l1', title: 'Penthouse Al-Malki', city: 'Damaskus', sqm: 180, priceEur: 185000, verifiedTitle: true, status: 'sale' },
-    { id: 'l2', title: 'Villa Dummar', city: 'Damaskus', sqm: 240, priceEur: 320000, verifiedTitle: true, status: 'sale' },
-    { id: 'l3', title: 'Apartment Aleppo-Neustadt', city: 'Aleppo', sqm: 110, priceEur: 89000, verifiedTitle: false, status: 'sale' },
-    { id: 'l4', title: 'Stadthaus Homs', city: 'Homs', sqm: 160, priceEur: 142000, verifiedTitle: true, status: 'sale' },
-    { id: 'l5', title: 'Meerblick-Wohnung Latakia', city: 'Latakia', sqm: 95, priceEur: 128000, verifiedTitle: true, status: 'sale' },
+    { id: 'l1', title: 'Penthouse Al-Malki', city: 'Damaskus', sqm: 180, priceEur: 185000, verifiedTitle: true, status: 'sale', approved: true },
+    { id: 'l2', title: 'Villa Dummar', city: 'Damaskus', sqm: 240, priceEur: 320000, verifiedTitle: true, status: 'sale', approved: true },
+    { id: 'l3', title: 'Apartment Aleppo-Neustadt', city: 'Aleppo', sqm: 110, priceEur: 89000, verifiedTitle: false, status: 'sale', approved: true },
+    { id: 'l4', title: 'Stadthaus Homs', city: 'Homs', sqm: 160, priceEur: 142000, verifiedTitle: true, status: 'sale', approved: true },
+    { id: 'l5', title: 'Meerblick-Wohnung Latakia', city: 'Latakia', sqm: 95, priceEur: 128000, verifiedTitle: true, status: 'sale', approved: true },
   ],
 
   // Investment-Fonds

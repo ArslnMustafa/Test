@@ -1,13 +1,15 @@
 // 5. Rendite & Investment-Fonds – Airbnb-Upselling & Fonds (mit Datenbank)
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { ScreenHeader, Card, Badge, Button, ProgressBar } from '../components/UI';
+import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function FundScreen() {
   const { state, actions } = useStore();
+  const [leaveFor, setLeaveFor] = useState(null); // Fonds, den man verlassen möchte
 
   // Beste Airbnb-Kandidatin: nicht bereits Airbnb, höchstes Potenzial
   const candidate =
@@ -76,17 +78,39 @@ export default function FundScreen() {
             </View>
 
             <View style={{ marginTop: spacing.md }}>
-              <Button
-                label={f.joined ? '✓ Sie sind beteiligt' : 'Am Fonds teilnehmen'}
-                tone={f.joined ? 'green' : 'blue'}
-                onPress={() => actions.joinFund(f.id)}
-              />
+              {f.joined ? (
+                <Button
+                  label="Beteiligung beenden"
+                  tone="red"
+                  outline
+                  onPress={() => setLeaveFor(f)}
+                />
+              ) : (
+                <Button
+                  label="Am Fonds teilnehmen"
+                  tone="blue"
+                  onPress={() => actions.joinFund(f.id)}
+                />
+              )}
+              {f.joined && <Text style={styles.joinedNote}>✓ Sie sind an diesem Fonds beteiligt</Text>}
             </View>
           </Card>
         );
       })}
 
       <View style={{ height: spacing.xl }} />
+
+      {/* Bestätigung: Fonds verlassen */}
+      <ConfirmModal
+        visible={!!leaveFor}
+        title="Beteiligung beenden?"
+        message={leaveFor ? `Möchten Sie Ihre Beteiligung am Fonds „${leaveFor.title}“ wirklich beenden? Ihr monatlicher Beitrag wird gestoppt.` : ''}
+        confirmLabel="Ja, beenden"
+        cancelLabel="Abbrechen"
+        danger
+        onConfirm={() => leaveFor && actions.leaveFund(leaveFor.id)}
+        onClose={() => setLeaveFor(null)}
+      />
     </ScrollView>
   );
 }
@@ -113,4 +137,5 @@ const styles = StyleSheet.create({
   investRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.md },
   investLabel: { color: colors.textMuted, fontSize: font.small },
   investValue: { color: colors.text, fontSize: font.small, fontWeight: '800' },
+  joinedNote: { color: colors.greenText, fontSize: font.small, textAlign: 'center', marginTop: spacing.sm },
 });

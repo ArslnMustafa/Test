@@ -85,6 +85,12 @@ function reducer(state, action) {
     case 'DELETE_LISTING':
       return { ...state, listings: state.listings.filter((l) => l.id !== action.id) };
 
+    case 'APPROVE_LISTING':
+      return {
+        ...state,
+        listings: state.listings.map((l) => (l.id === action.id ? { ...l, approved: true } : l)),
+      };
+
     // ---- Fonds ----
     case 'JOIN_FUND':
       return {
@@ -96,6 +102,20 @@ function reducer(state, action) {
             joined: true,
             investors: Math.min(f.investors + 1, f.maxInvestors),
             raisedEur: Math.min(f.raisedEur + f.minMonthlyEur * 12, f.goalEur),
+          };
+        }),
+      };
+
+    case 'LEAVE_FUND':
+      return {
+        ...state,
+        funds: state.funds.map((f) => {
+          if (f.id !== action.id || !f.joined) return f;
+          return {
+            ...f,
+            joined: false,
+            investors: Math.max(f.investors - 1, 0),
+            raisedEur: Math.max(f.raisedEur - f.minMonthlyEur * 12, 0),
           };
         }),
       };
@@ -158,7 +178,8 @@ export function StoreProvider({ children }) {
 
     requestCraftsman: (id) => dispatch({ type: 'REQUEST_CRAFTSMAN', id }),
 
-    addListing: (data) =>
+    // approved: true, wenn direkt freigegeben (Verwalter); false = wartet auf Genehmigung (Eigentümer)
+    addListing: (data, approved = false) =>
       dispatch({
         type: 'ADD_LISTING',
         listing: {
@@ -169,11 +190,15 @@ export function StoreProvider({ children }) {
           priceEur: Number(data.priceEur) || 0,
           verifiedTitle: false,
           status: 'sale',
+          approved: !!approved,
         },
       }),
     deleteListing: (id) => dispatch({ type: 'DELETE_LISTING', id }),
+    approveListing: (id) => dispatch({ type: 'APPROVE_LISTING', id }),
+    rejectListing: (id) => dispatch({ type: 'DELETE_LISTING', id }), // Ablehnen = entfernen
 
     joinFund: (id) => dispatch({ type: 'JOIN_FUND', id }),
+    leaveFund: (id) => dispatch({ type: 'LEAVE_FUND', id }),
 
     // ---- Login / Logout ----
     // Prüft E-Mail + Passwort gegen die Benutzerliste.

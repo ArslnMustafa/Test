@@ -8,9 +8,12 @@ import { eur, modeLabel } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function HomeScreen() {
-  const { state, actions } = useStore();
+  const { state, actions, currentUser } = useStore();
   const [addOpen, setAddOpen] = useState(false);
   const [detail, setDetail] = useState(null); // ausgewählte Immobilie
+
+  // Nur der Verwalter darf Immobilien direkt hinzufügen (Eigentümer nicht)
+  const canAddProperty = currentUser?.role === 'admin';
 
   // Kennzahlen aus der "Datenbank" berechnen
   const portfolio = state.properties.reduce((s, p) => s + p.valueEur, 0);
@@ -35,6 +38,19 @@ export default function HomeScreen() {
         </View>
       </Card>
 
+      {/* Einnahmen gesamt: diesen Monat & dieses Jahr */}
+      <Card style={styles.incomeCard}>
+        <View style={styles.incomeCol}>
+          <Text style={styles.incomeLabel}>Diesen Monat</Text>
+          <Text style={styles.incomeValue}>{eur(monthlyRent)}</Text>
+        </View>
+        <View style={styles.incomeDivider} />
+        <View style={styles.incomeCol}>
+          <Text style={styles.incomeLabel}>Dieses Jahr</Text>
+          <Text style={styles.incomeValue}>{eur(yearlyRent)}</Text>
+        </View>
+      </Card>
+
       {/* KI-Standortanalyse */}
       <Card style={{ backgroundColor: colors.purpleDark, borderColor: '#3b2d63' }}>
         <Text style={styles.kiTitle}>✨ KI-Standortanalyse</Text>
@@ -44,12 +60,14 @@ export default function HomeScreen() {
         </Text>
       </Card>
 
-      {/* Meine Immobilien */}
+      {/* Einnahmen je Immobilie */}
       <View style={styles.sectionRow}>
         <Text style={styles.sectionTitle}>Meine Immobilien ({state.properties.length})</Text>
-        <TouchableOpacity onPress={() => setAddOpen(true)} activeOpacity={0.8}>
-          <Text style={styles.addLink}>+ Hinzufügen</Text>
-        </TouchableOpacity>
+        {canAddProperty && (
+          <TouchableOpacity onPress={() => setAddOpen(true)} activeOpacity={0.8}>
+            <Text style={styles.addLink}>+ Hinzufügen</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {state.properties.map((p) => (
@@ -57,6 +75,10 @@ export default function HomeScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.itemTitle}>{p.name}{p.mode === 'airbnb' ? ' ☀️' : ''}</Text>
             <Text style={styles.itemSub}>{p.city} · {modeLabel(p.mode)}</Text>
+            {/* Einnahmen dieser Immobilie: Monat & Jahr */}
+            <Text style={styles.itemIncome}>
+              {eur(p.monthlyRentEur)} / Mo · {eur(p.yearlyRentEur)} / Jahr
+            </Text>
           </View>
           <TouchableOpacity onPress={() => setDetail(p)} activeOpacity={0.8}>
             <SmallButton label="Details ›" tone={p.mode === 'vacant' ? 'gold' : 'blue'} />
@@ -67,8 +89,6 @@ export default function HomeScreen() {
       {/* Finanzübersicht */}
       <Text style={styles.sectionTitle}>Finanzübersicht</Text>
       <Card>
-        <Text style={styles.centerValue}>{eur(monthlyRent)} / Monat</Text>
-
         <View style={styles.compareBox}>
           <Text style={styles.compareTitle}>🏷️ KI Mietpreis-Vergleich</Text>
           <Text style={styles.compareBody}>
@@ -164,6 +184,13 @@ const styles = StyleSheet.create({
   rowCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   itemTitle: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   itemSub: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
+  itemIncome: { color: colors.greenText, fontSize: font.small, fontWeight: '700', marginTop: spacing.xs },
+
+  incomeCard: { flexDirection: 'row', alignItems: 'center' },
+  incomeCol: { flex: 1, alignItems: 'center' },
+  incomeLabel: { color: colors.textMuted, fontSize: font.small, marginBottom: spacing.xs },
+  incomeValue: { color: colors.text, fontSize: font.h2, fontWeight: '800' },
+  incomeDivider: { width: 1, alignSelf: 'stretch', backgroundColor: colors.border, marginVertical: spacing.xs },
 
   centerValue: { color: colors.text, fontSize: font.h1, fontWeight: '800', textAlign: 'center', marginBottom: spacing.md },
   compareBox: { backgroundColor: '#2a1f08', borderRadius: radius.md, borderWidth: 1, borderColor: '#4a380f', padding: spacing.md },
