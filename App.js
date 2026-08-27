@@ -10,6 +10,7 @@ import TenantMenuScreen from './src/screens/TenantMenuScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
 import JobsScreen from './src/screens/JobsScreen';
+import MessagesScreen from './src/screens/MessagesScreen';
 import FundScreen from './src/screens/FundScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { StoreProvider, useStore } from './src/store/store';
@@ -25,13 +26,14 @@ const TAB_DEFS = {
   market: { key: 'market', label: 'Markt',      icon: '🏢', screen: MarketScreen },
   crafts: { key: 'crafts', label: 'Handwerker', icon: '👷', screen: CraftsmenScreen },
   jobs:   { key: 'jobs',   label: 'Aufträge',   icon: '🛠️', screen: JobsScreen },
+  posta:  { key: 'posta',  label: 'Post',       icon: '✉️', screen: MessagesScreen },
   fund:   { key: 'fund',   label: 'Fonds',      icon: '📈', screen: FundScreen },
 };
 
 // Welche Tabs sieht welche Rolle
 const ROLE_TABS = {
-  admin:   ['home', 'rent', 'market', 'crafts', 'fund'],
-  owner:   ['home', 'rent', 'market', 'crafts', 'fund'],
+  admin:   ['home', 'rent', 'posta', 'market', 'crafts', 'fund'],
+  owner:   ['home', 'rent', 'posta', 'market', 'fund'],
   tenant:  ['konut', 'myrent', 'market', 'fund'],
   worker:  ['jobs', 'market'],
   company: ['jobs', 'market'],

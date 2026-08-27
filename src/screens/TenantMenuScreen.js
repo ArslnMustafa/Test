@@ -2,7 +2,7 @@
 // Struktur wie in der Referenz-App; Inhalte werden nach und nach gefüllt.
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Card, Badge, Button } from '../components/UI';
+import { Card, Badge, Button, MessageCard } from '../components/UI';
 import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur, when } from '../utils';
@@ -55,6 +55,12 @@ export default function TenantMenuScreen() {
   const allItems = GROUPS.flatMap((g) => g.items);
   const activeItem = allItems.find((i) => i.key === view);
 
+  // Eigene Nachrichten (Posteingang)
+  const myMessages = (state.messages || [])
+    .filter((m) => m.toUserId === currentUser?.id)
+    .sort((a, b) => b.at - a.at);
+  const nameFor = (id) => (state.users.find((u) => u.id === id)?.name) || 'Verwaltung';
+
   // ---- Untermenü-Ansicht ----
   if (activeItem) {
     return (
@@ -64,7 +70,7 @@ export default function TenantMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.detailTitle}>{activeItem.icon}  {activeItem.label}</Text>
 
-        {renderDetail(view, { tenant, setPayOpen })}
+        {renderDetail(view, { tenant, setPayOpen, myMessages, nameFor })}
 
         <View style={{ height: spacing.xl }} />
 
@@ -96,7 +102,7 @@ export default function TenantMenuScreen() {
         <View key={g.title}>
           <Text style={styles.groupTitle}>{g.icon}  {g.title.toUpperCase()}</Text>
           {g.items.map((it) => {
-            const badge = itemBadge(it.key, tenant);
+            const badge = itemBadge(it.key, tenant, { msgCount: myMessages.length });
             return (
               <TouchableOpacity key={it.key} activeOpacity={0.8} onPress={() => setView(it.key)}>
                 <View style={styles.row}>
@@ -120,7 +126,8 @@ export default function TenantMenuScreen() {
 }
 
 // Kleiner Status-Badge an bestimmten Menüpunkten
-function itemBadge(key, tenant) {
+function itemBadge(key, tenant, { msgCount } = {}) {
+  if (key === 'messages' && msgCount > 0) return <Badge label={String(msgCount)} tone="blue" />;
   if (!tenant) return null;
   if (key === 'debts' && tenant.status === 'overdue') return <Badge label={eur(tenant.overdueEur)} tone="red" />;
   if (key === 'debts' && tenant.status === 'paid') return <Badge label="0 €" tone="green" />;
@@ -129,7 +136,24 @@ function itemBadge(key, tenant) {
 }
 
 // Inhalt je Menüpunkt (mit Daten gefüllt oder Platzhalter)
-function renderDetail(key, { tenant, setPayOpen }) {
+function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor }) {
+  if (key === 'messages') {
+    if (!myMessages || myMessages.length === 0) return <ComingSoon note="Sie haben noch keine Nachrichten." />;
+    return (
+      <View style={{ marginHorizontal: -spacing.lg }}>
+        {myMessages.map((m) => (
+          <MessageCard
+            key={m.id}
+            date={when(m.at)}
+            party={nameFor(m.fromUserId)}
+            partyLabel="Absender"
+            text={m.text}
+          />
+        ))}
+      </View>
+    );
+  }
+
   if (key === 'debts') {
     if (!tenant) return <ComingSoon note="Kein Miet-Datensatz verknüpft." />;
     const overdue = tenant.status === 'overdue';

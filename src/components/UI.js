@@ -76,6 +76,27 @@ export function ImagePlaceholder({ style }) {
   return <View style={[styles.imagePlaceholder, style]} />;
 }
 
+// Nachrichten-Karte (Datum / Absender + Inhalt) – Layout wie in der Referenz
+export function MessageCard({ date, party, partyLabel = 'Von', text }) {
+  return (
+    <View style={styles.msgCard}>
+      <View style={styles.msgHead}>
+        <View>
+          <Text style={styles.msgHeadLabel}>DATUM</Text>
+          <Text style={styles.msgHeadValue}>{date}</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={styles.msgHeadLabel}>{partyLabel.toUpperCase()}</Text>
+          <Text style={styles.msgHeadValue}>{party}</Text>
+        </View>
+      </View>
+      <View style={styles.msgDivider} />
+      <Text style={styles.msgHeadLabel}>INHALT</Text>
+      <Text style={styles.msgText}>{text}</Text>
+    </View>
+  );
+}
+
 const badgeTones = {
   neutral: { bg: colors.surfaceAlt, border: colors.border, text: colors.textMuted },
   green: { bg: colors.greenDark, border: '#1f5130', text: colors.greenText },
@@ -159,4 +180,19 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 64,
   },
+
+  msgCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  msgHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  msgHeadLabel: { color: colors.textFaint, fontSize: font.tiny, fontWeight: '700', letterSpacing: 0.5 },
+  msgHeadValue: { color: colors.text, fontSize: font.small, fontWeight: '700', marginTop: 1 },
+  msgDivider: { height: 1, borderBottomWidth: 1, borderStyle: 'dashed', borderColor: colors.border, marginVertical: spacing.sm },
+  msgText: { color: colors.textMuted, fontSize: font.small, lineHeight: 19, marginTop: spacing.xs },
 });

@@ -120,6 +120,10 @@ function reducer(state, action) {
         }),
       };
 
+    // ---- Nachrichten ----
+    case 'SEND_MESSAGE':
+      return { ...state, messages: [action.message, ...(state.messages || [])] };
+
     // ---- Aufträge (Handwerker/Firma) ----
     case 'SET_JOB_STATUS':
       return {
@@ -210,6 +214,17 @@ export function StoreProvider({ children }) {
     // Aufträge: annehmen / als erledigt markieren
     acceptJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'accepted' }),
     completeJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'done' }),
+
+    // Nachricht senden (Absender = aktueller Benutzer)
+    sendMessage: (toUserId, text) => {
+      const t = String(text || '').trim();
+      if (!toUserId || !t) return false;
+      dispatch({
+        type: 'SEND_MESSAGE',
+        message: { id: newId('m'), toUserId, fromUserId: state.currentUserId, at: Date.now(), text: t },
+      });
+      return true;
+    },
 
     // ---- Login / Logout ----
     // Prüft E-Mail + Passwort gegen die Benutzerliste.

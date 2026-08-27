@@ -66,6 +66,18 @@ export const SEED = {
     { id: 'j4', title: 'Fliesen Küche',            propertyName: 'Penthouse Latakia',   city: 'Latakia',  craftsmanId: 'c1', budgetEur: 1800, status: 'done' },
   ],
 
+  // Nachrichten (Verwaltung -> Bewohner). toUserId = Empfänger, fromUserId = Absender
+  messages: [
+    { id: 'm1', toUserId: 'u3', fromUserId: 'u1', at: Date.parse('2026-08-24T15:18:00'),
+      text: 'Sehr geehrte(r) Omar Said, der aktuelle Saldo Ihrer Wohnung (Apt. Al-Shahba) beträgt € 250. Bitte beachten Sie die Zahlungsfristen. Mit freundlichen Grüßen, die Verwaltung.' },
+    { id: 'm2', toUserId: 'u3', fromUserId: 'u1', at: Date.parse('2026-08-11T17:28:00'),
+      text: 'Sehr geehrte Bewohner, für die Feuerlöscher-Wartung wird je Wohnung eine Gebühr von € 20 erhoben. Zahlungsfrist: 30.08.2026.' },
+    { id: 'm3', toUserId: 'u3', fromUserId: 'u1', at: Date.parse('2026-06-08T17:59:00'),
+      text: 'Ihr Zahlungsrückstand beträgt heute € 946,41. Bei Nichtzahlung bis 11.06.2026 wird eine Mahnung durch unseren Anwalt versendet (Gebühr € 35). Der Betrag wird Ihrem Saldo hinzugefügt.' },
+    { id: 'm4', toUserId: 'u2', fromUserId: 'u1', at: Date.parse('2026-08-20T10:25:00'),
+      text: 'Sehr geehrter Herr Haddad, die Nebenkostenabrechnung für Ihre Immobilien liegt bereit. Bitte prüfen Sie den Bereich „Einnahmen / Ausgaben".' },
+  ],
+
   // Aktuell angemeldeter Benutzer (null = ausgeloggt, zeigt Login-Screen)
   currentUserId: null,
 };
