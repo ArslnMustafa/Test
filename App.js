@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Plat
 import HomeScreen from './src/screens/HomeScreen';
 import RentScreen from './src/screens/RentScreen';
 import MyRentScreen from './src/screens/MyRentScreen';
+import TenantMenuScreen from './src/screens/TenantMenuScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
 import JobsScreen from './src/screens/JobsScreen';
@@ -19,6 +20,7 @@ import { colors, spacing, font, radius } from './src/theme';
 const TAB_DEFS = {
   home:   { key: 'home',   label: 'Home',       icon: '🏠', screen: HomeScreen },
   rent:   { key: 'rent',   label: 'Miete',      icon: '📋', screen: RentScreen },
+  konut:  { key: 'konut',  label: 'Konut',      icon: '🏠', screen: TenantMenuScreen },
   myrent: { key: 'myrent', label: 'Meine Miete', icon: '🔑', screen: MyRentScreen },
   market: { key: 'market', label: 'Markt',      icon: '🏢', screen: MarketScreen },
   crafts: { key: 'crafts', label: 'Handwerker', icon: '👷', screen: CraftsmenScreen },
@@ -30,7 +32,7 @@ const TAB_DEFS = {
 const ROLE_TABS = {
   admin:   ['home', 'rent', 'market', 'crafts', 'fund'],
   owner:   ['home', 'rent', 'market', 'crafts', 'fund'],
-  tenant:  ['myrent', 'market', 'fund'],
+  tenant:  ['konut', 'myrent', 'market', 'fund'],
   worker:  ['jobs', 'market'],
   company: ['jobs', 'market'],
 };
