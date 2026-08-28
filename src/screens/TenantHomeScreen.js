@@ -5,9 +5,11 @@ import { Card, Badge } from '../components/UI';
 import { useStore } from '../store/store';
 import { useLang } from '../i18n';
 import { eur2, dmy, debtIcon } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function TenantHomeScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, currentUser } = useStore();
   const { t } = useLang();
   const greeting = () => {
@@ -143,6 +145,8 @@ export default function TenantHomeScreen() {
 }
 
 function ContactRow({ icon, label, value, last }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.cRow, last && { borderBottomWidth: 0 }]}>
       <Text style={styles.cIcon}>{icon}</Text>
@@ -152,7 +156,7 @@ function ContactRow({ icon, label, value, last }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { padding: spacing.lg, paddingBottom: spacing.xl },
 
   hero: { backgroundColor: colors.blue, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md },
@@ -191,3 +195,5 @@ const styles = StyleSheet.create({
   annText: { color: colors.textMuted, fontSize: font.small, lineHeight: 19 },
   annDate: { color: colors.textFaint, fontSize: font.tiny, marginTop: spacing.sm },
 });
+
+const styles = makeStyles(darkColors);

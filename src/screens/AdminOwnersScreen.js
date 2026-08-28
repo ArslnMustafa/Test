@@ -4,9 +4,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { ScreenHeader, Card, Badge } from '../components/UI';
 import { useStore } from '../store/store';
 import { eur } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function AdminOwnersScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state } = useStore();
   const [ownerId, setOwnerId] = useState(null);
 
@@ -81,7 +83,7 @@ export default function AdminOwnersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   muted: { color: colors.textMuted, fontSize: font.body },
 
@@ -103,3 +105,5 @@ const styles = StyleSheet.create({
   between: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   overdue: { color: '#f87171', fontSize: font.small, marginTop: spacing.sm },
 });
+
+const styles = makeStyles(darkColors);

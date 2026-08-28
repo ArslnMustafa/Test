@@ -1,10 +1,12 @@
 // Wiederverwendbare UI-Bausteine (Karten, Buttons, Badges ...)
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 // Kopfbereich einer Seite: großer Titel + arabischer Untertitel
 export function ScreenHeader({ title, titleAr, subtitle }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.header}>
       <View style={styles.headerBar} />
@@ -19,11 +21,15 @@ export function ScreenHeader({ title, titleAr, subtitle }) {
 
 // Standard-Karte
 export function Card({ children, style }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
 // Farbiges Statusabzeichen (z. B. Bezahlt / Überfällig)
 export function Badge({ label, tone = 'neutral' }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const toneStyle = badgeTones[tone] || badgeTones.neutral;
   return (
     <View style={[styles.badge, { backgroundColor: toneStyle.bg, borderColor: toneStyle.border }]}>
@@ -34,6 +40,8 @@ export function Badge({ label, tone = 'neutral' }) {
 
 // Button – rein visuell, ohne Funktion (wie gewünscht)
 export function Button({ label, tone = 'blue', outline = false, onPress }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const t = buttonTones[tone] || buttonTones.blue;
   return (
     <TouchableOpacity
@@ -53,6 +61,8 @@ export function Button({ label, tone = 'blue', outline = false, onPress }) {
 
 // Kleiner "Chip"-Button für Listeneinträge
 export function SmallButton({ label, tone = 'blue' }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const t = buttonTones[tone] || buttonTones.blue;
   return (
     <View style={[styles.smallButton, { backgroundColor: t.bg }]}>
@@ -63,6 +73,8 @@ export function SmallButton({ label, tone = 'blue' }) {
 
 // Fortschrittsbalken
 export function ProgressBar({ progress = 0.5, tone = 'green' }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const t = buttonTones[tone] || buttonTones.green;
   return (
     <View style={styles.progressTrack}>
@@ -73,11 +85,15 @@ export function ProgressBar({ progress = 0.5, tone = 'green' }) {
 
 // Grauer Platzhalter für Bilder / Galerien
 export function ImagePlaceholder({ style }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return <View style={[styles.imagePlaceholder, style]} />;
 }
 
 // Nachrichten-Karte (Datum / Absender + Inhalt) – Layout wie in der Referenz
 export function MessageCard({ date, party, partyLabel = 'Von', text }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.msgCard}>
       <View style={styles.msgHead}>
@@ -113,7 +129,7 @@ const buttonTones = {
   ghost: { bg: colors.surfaceAlt, text: colors.text },
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -196,3 +212,5 @@ const styles = StyleSheet.create({
   msgDivider: { height: 1, borderBottomWidth: 1, borderStyle: 'dashed', borderColor: colors.border, marginVertical: spacing.sm },
   msgText: { color: colors.textMuted, fontSize: font.small, lineHeight: 19, marginTop: spacing.xs },
 });
+
+const styles = makeStyles(darkColors);

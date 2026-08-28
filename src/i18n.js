@@ -37,6 +37,7 @@ const T = {
     'set.title': 'Einstellungen', 'set.notifications': 'Benachrichtigungen',
     'set.notifDesc': 'Hinweise zu Zahlungen, Mängeln und Nachrichten.', 'set.test': 'Test-Benachrichtigung senden',
     'set.sent': '✓ Gesendet', 'set.unavail': 'Nicht verfügbar auf diesem Gerät', 'set.language': 'Sprache',
+    'set.theme': 'Design', 'set.dark': 'Dunkel', 'set.light': 'Hell',
 
     'home.greetMorning': 'Guten Morgen', 'home.greetDay': 'Guten Tag', 'home.greetEvening': 'Guten Abend',
     'home.currentDues': 'Aktuelle Forderungen', 'home.noDues': '✓ Keine offenen Forderungen.',
@@ -68,6 +69,7 @@ const T = {
     'set.title': 'Ayarlar', 'set.notifications': 'Bildirimler',
     'set.notifDesc': 'Ödeme, arıza ve mesaj bildirimleri.', 'set.test': 'Test bildirimi gönder',
     'set.sent': '✓ Gönderildi', 'set.unavail': 'Bu cihazda kullanılamıyor', 'set.language': 'Dil',
+    'set.theme': 'Tema', 'set.dark': 'Koyu', 'set.light': 'Açık',
 
     'home.greetMorning': 'Günaydın', 'home.greetDay': 'İyi Günler', 'home.greetEvening': 'İyi Akşamlar',
     'home.currentDues': 'Güncel Borçlar', 'home.noDues': '✓ Açık borcunuz yok.',
@@ -99,6 +101,7 @@ const T = {
     'set.title': 'الإعدادات', 'set.notifications': 'الإشعارات',
     'set.notifDesc': 'تنبيهات حول المدفوعات والأعطال والرسائل.', 'set.test': 'إرسال إشعار تجريبي',
     'set.sent': '✓ تم الإرسال', 'set.unavail': 'غير متوفر على هذا الجهاز', 'set.language': 'اللغة',
+    'set.theme': 'المظهر', 'set.dark': 'داكن', 'set.light': 'فاتح',
 
     'home.greetMorning': 'صباح الخير', 'home.greetDay': 'يومًا سعيدًا', 'home.greetEvening': 'مساء الخير',
     'home.currentDues': 'المستحقات الحالية', 'home.noDues': '✓ لا توجد مستحقات.',

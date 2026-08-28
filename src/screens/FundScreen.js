@@ -5,9 +5,11 @@ import { ScreenHeader, Card, Badge, Button, ProgressBar } from '../components/UI
 import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function FundScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions } = useStore();
   const [leaveFor, setLeaveFor] = useState(null); // Fonds, den man verlassen möchte
   const [joinFor, setJoinFor] = useState(null); // Fonds, dem man beitreten möchte
@@ -127,7 +129,7 @@ export default function FundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
 
   premiumTag: { alignSelf: 'flex-start', backgroundColor: '#3a2a0d', borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: '#5c4212', marginBottom: spacing.md },
@@ -151,3 +153,5 @@ const styles = StyleSheet.create({
   investValue: { color: colors.text, fontSize: font.small, fontWeight: '800' },
   joinedNote: { color: colors.greenText, fontSize: font.small, textAlign: 'center', marginTop: spacing.sm },
 });
+
+const styles = makeStyles(darkColors);

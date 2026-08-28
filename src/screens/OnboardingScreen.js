@@ -2,11 +2,13 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useLang } from '../i18n';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen({ onDone }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { t } = useLang();
   const ref = useRef(null);
   const [i, setI] = useState(0);
@@ -60,7 +62,7 @@ export default function OnboardingScreen({ onDone }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   skip: { position: 'absolute', top: spacing.lg, right: spacing.lg, zIndex: 2, padding: spacing.sm },
   skipText: { color: colors.textMuted, fontSize: font.small, fontWeight: '700' },
@@ -82,3 +84,5 @@ const styles = StyleSheet.create({
   button: { backgroundColor: colors.gold, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   buttonText: { color: '#1a1300', fontSize: font.h3, fontWeight: '800' },
 });
+
+const styles = makeStyles(darkColors);

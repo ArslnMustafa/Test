@@ -4,9 +4,11 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Keyboa
 import { useStore } from '../store/store';
 import { useLang } from '../i18n';
 import { roleIcon } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function LoginScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions } = useStore();
   const { t } = useLang();
   const [email, setEmail] = useState('');
@@ -87,7 +89,7 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { padding: spacing.lg, paddingTop: spacing.xxl },
 
   brand: { alignItems: 'center', marginBottom: spacing.xl },
@@ -146,3 +148,5 @@ const styles = StyleSheet.create({
   demoName: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   demoCred: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
 });
+
+const styles = makeStyles(darkColors);

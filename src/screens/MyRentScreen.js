@@ -5,9 +5,11 @@ import { ScreenHeader, Card, Badge, Button } from '../components/UI';
 import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur, when } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function MyRentScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [payOpen, setPayOpen] = useState(false);
 
@@ -80,7 +82,7 @@ export default function MyRentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   muted: { color: colors.textMuted, fontSize: font.body },
   rowBetween: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
@@ -93,3 +95,5 @@ const styles = StyleSheet.create({
   logText: { color: colors.text, fontSize: font.body },
   logDate: { color: colors.textFaint, fontSize: font.tiny, marginTop: 2 },
 });
+
+const styles = makeStyles(darkColors);

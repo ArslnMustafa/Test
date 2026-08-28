@@ -5,9 +5,11 @@ import { ScreenHeader, Card, Badge, SmallButton, ImagePlaceholder, Button } from
 import { FormModal, InfoModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function MarketScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [addOpen, setAddOpen] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -151,6 +153,8 @@ export default function MarketScreen() {
 }
 
 function DetailRow({ label, value }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -159,7 +163,7 @@ function DetailRow({ label, value }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   toolbar: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   pendingHint: {
@@ -194,3 +198,5 @@ const styles = StyleSheet.create({
   detailLabel: { color: colors.textMuted, fontSize: font.body },
   detailValue: { color: colors.text, fontSize: font.body, fontWeight: '700' },
 });
+
+const styles = makeStyles(darkColors);

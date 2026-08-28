@@ -26,7 +26,7 @@ import { InfoModal } from './src/components/Modals';
 import { Button } from './src/components/UI';
 import { notify } from './src/notify';
 import { roleIcon } from './src/utils';
-import { colors, spacing, font, radius } from './src/theme';
+import { colors, spacing, font, radius, useTheme, darkColors, ThemeProvider } from './src/theme';
 
 const ONBOARD_KEY = 'darna:onboarded:v1';
 
@@ -60,6 +60,8 @@ const ROLE_TABS = {
 function Shell() {
   const { state, actions, currentUser } = useStore();
   const { t, lang, setLang } = useLang();
+  const { colors, mode, setThemeMode } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [active, setActive] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [testMsg, setTestMsg] = useState('');
@@ -122,6 +124,18 @@ function Shell() {
           ))}
         </View>
 
+        <Text style={[styles.setLabel, { marginTop: spacing.lg }]}>{t('set.theme')}</Text>
+        <View style={styles.langRow}>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setThemeMode('dark')} style={[styles.langChip, mode === 'dark' && styles.langChipOn]}>
+            <Text style={styles.langFlag}>🌙</Text>
+            <Text style={[styles.langText, mode === 'dark' && styles.langTextOn]}>{t('set.dark')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setThemeMode('light')} style={[styles.langChip, mode === 'light' && styles.langChipOn]}>
+            <Text style={styles.langFlag}>☀️</Text>
+            <Text style={[styles.langText, mode === 'light' && styles.langTextOn]}>{t('set.light')}</Text>
+          </TouchableOpacity>
+        </View>
+
         <Text style={[styles.setLabel, { marginTop: spacing.lg }]}>{t('set.notifications')}</Text>
         <Text style={styles.setText}>{t('set.notifDesc')}</Text>
         <Button
@@ -152,7 +166,10 @@ function Shell() {
   );
 }
 
-export default function App() {
+function Root() {
+  const { colors, mode } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
+
   // Onboarding-Status: null = wird geladen, false = zeigen, true = fertig
   const [onboarded, setOnboarded] = useState(null);
 
@@ -168,26 +185,34 @@ export default function App() {
   };
 
   return (
-    <LanguageProvider>
-      <SafeAreaView style={styles.root}>
-        <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-        {onboarded === false ? (
-          <OnboardingScreen onDone={finishOnboarding} />
-        ) : onboarded === null ? (
-          <View style={[styles.body, styles.center]}>
-            <ActivityIndicator color={colors.gold} size="large" />
-          </View>
-        ) : (
-          <StoreProvider>
-            <Shell />
-          </StoreProvider>
-        )}
-      </SafeAreaView>
-    </LanguageProvider>
+    <SafeAreaView style={styles.root}>
+      <StatusBar barStyle={mode === 'light' ? 'dark-content' : 'light-content'} backgroundColor={colors.bg} />
+      {onboarded === false ? (
+        <OnboardingScreen onDone={finishOnboarding} />
+      ) : onboarded === null ? (
+        <View style={[styles.body, styles.center]}>
+          <ActivityIndicator color={colors.gold} size="large" />
+        </View>
+      ) : (
+        <StoreProvider>
+          <Shell />
+        </StoreProvider>
+      )}
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+export default function App() {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <Root />
+      </LanguageProvider>
+    </ThemeProvider>
+  );
+}
+
+const makeStyles = (colors) => StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
   body: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center', gap: spacing.md },
@@ -246,3 +271,5 @@ const styles = StyleSheet.create({
   tabLabelActive: { color: colors.gold },
   tabDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.gold, marginTop: 2 },
 });
+
+const styles = makeStyles(darkColors);

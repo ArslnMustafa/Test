@@ -4,9 +4,11 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Keyboa
 import { ScreenHeader, Card, Button } from '../components/UI';
 import { useStore } from '../store/store';
 import { roleLabel, roleIcon, eur } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function AdminPanelScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions } = useStore();
   const [tab, setTab] = useState('ann');
 
@@ -33,6 +35,8 @@ export default function AdminPanelScreen() {
 
 // --- Ankündigung ---
 function AnnouncementForm({ actions }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [kind, setKind] = useState('info');
@@ -62,6 +66,8 @@ function AnnouncementForm({ actions }) {
 
 // --- Forderung ---
 function DebtForm({ actions, tenants }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [tenantId, setTenantId] = useState(null);
   const [info, setInfo] = useState('');
   const [amount, setAmount] = useState('');
@@ -99,6 +105,8 @@ function DebtForm({ actions, tenants }) {
 
 // --- Benutzer ---
 function UserForm({ actions }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -131,6 +139,8 @@ function UserForm({ actions }) {
 }
 
 function Field({ label, multiline, numeric, ...rest }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={{ marginBottom: spacing.md }}>
       <Text style={styles.label}>{label}</Text>
@@ -147,6 +157,8 @@ function Field({ label, multiline, numeric, ...rest }) {
 }
 
 function Chip({ label, on, onPress }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.chip, on && styles.chipOn]}>
       <Text style={[styles.chipText, on && styles.chipTextOn]}>{label}</Text>
@@ -155,6 +167,8 @@ function Chip({ label, on, onPress }) {
 }
 
 function Tab({ label, active, onPress }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <TouchableOpacity style={[styles.tab, active && styles.tabOn]} activeOpacity={0.8} onPress={onPress}>
       <Text style={[styles.tabText, active && styles.tabTextOn]}>{label}</Text>
@@ -162,7 +176,7 @@ function Tab({ label, active, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   tabs: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg, marginBottom: spacing.sm },
   tab: { flex: 1, paddingVertical: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt, alignItems: 'center' },
@@ -182,3 +196,5 @@ const styles = StyleSheet.create({
   chipTextOn: { color: colors.blueSoft },
   hint: { color: colors.textFaint, fontSize: font.small, marginTop: spacing.sm, textAlign: 'center' },
 });
+
+const styles = makeStyles(darkColors);

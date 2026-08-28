@@ -4,9 +4,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { ScreenHeader, Card, Badge, Button, ImagePlaceholder } from '../components/UI';
 import { InfoModal } from '../components/Modals';
 import { useStore } from '../store/store';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function CraftsmenScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions } = useStore();
   const [tab, setTab] = useState('premium'); // Kategorie-Filter
   const [profile, setProfile] = useState(null); // ausgewähltes Profil
@@ -88,7 +90,7 @@ export default function CraftsmenScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
 
   tabs: { flexDirection: 'row', marginHorizontal: spacing.lg, marginBottom: spacing.md },
@@ -110,3 +112,5 @@ const styles = StyleSheet.create({
   worksGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   workCell: { width: '47%', height: 72 },
 });
+
+const styles = makeStyles(darkColors);

@@ -1,10 +1,12 @@
 // Wiederverwendbare Dialoge: Formular-Dialog & Aktions-Menü
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 // Halbtransparenter Hintergrund, der den Dialog zentriert
 function Backdrop({ children, onClose }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.backdrop}>
       <TouchableOpacity style={styles.backdropTouch} activeOpacity={1} onPress={onClose} />
@@ -16,6 +18,8 @@ function Backdrop({ children, onClose }) {
 // Formular-Dialog: erzeugt Eingabefelder aus `fields`
 // fields = [{ key, label, placeholder, numeric }]
 export function FormModal({ visible, title, fields = [], submitLabel = 'Speichern', onSubmit, onClose }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const [values, setValues] = useState({});
 
   // Bei jedem Öffnen die Felder leeren
@@ -62,6 +66,8 @@ export function FormModal({ visible, title, fields = [], submitLabel = 'Speicher
 // Aktions-Menü: Liste auswählbarer Optionen
 // options = [{ key, icon, title, subtitle, danger, onPress }]
 export function ActionSheet({ visible, title, options = [], onClose }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Backdrop onClose={onClose}>
@@ -90,6 +96,8 @@ export function ActionSheet({ visible, title, options = [], onClose }) {
 
 // Bestätigungs-Dialog ("Sind Sie sicher?")
 export function ConfirmModal({ visible, title, message, confirmLabel = 'Bestätigen', cancelLabel = 'Abbrechen', danger = false, onConfirm, onClose }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Backdrop onClose={onClose}>
@@ -114,6 +122,8 @@ export function ConfirmModal({ visible, title, message, confirmLabel = 'Bestäti
 
 // Einfacher Info-/Detail-Dialog mit freiem Inhalt
 export function InfoModal({ visible, title, children, onClose }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Backdrop onClose={onClose}>
@@ -127,7 +137,7 @@ export function InfoModal({ visible, title, children, onClose }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: spacing.lg },
   backdropTouch: { ...StyleSheet.absoluteFillObject },
   sheet: {
@@ -181,3 +191,5 @@ const styles = StyleSheet.create({
   actionTitle: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   actionSub: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
 });
+
+const styles = makeStyles(darkColors);

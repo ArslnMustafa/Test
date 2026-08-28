@@ -5,9 +5,11 @@ import { ScreenHeader, Card, SmallButton, ProgressBar, Button } from '../compone
 import { FormModal, InfoModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur, modeLabel } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function HomeScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [addOpen, setAddOpen] = useState(false);
   const [detail, setDetail] = useState(null); // ausgewählte Immobilie
@@ -171,6 +173,8 @@ export default function HomeScreen() {
 }
 
 function DetailRow({ label, value }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -179,7 +183,7 @@ function DetailRow({ label, value }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
 
   cardLabel: { color: colors.textMuted, fontSize: font.small, textAlign: 'center' },
@@ -221,3 +225,5 @@ const styles = StyleSheet.create({
 
   bold: { fontWeight: '700', color: colors.text },
 });
+
+const styles = makeStyles(darkColors);

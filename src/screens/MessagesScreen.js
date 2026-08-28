@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Keyboa
 import { ScreenHeader, Card, MessageCard, Button, Badge } from '../components/UI';
 import { useStore } from '../store/store';
 import { when, roleLabel, roleIcon, eur, jobIcon } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 const JOB_STATUS = {
   open: { label: 'Offen', tone: 'gold' },
@@ -19,6 +19,8 @@ const OFFER_STATUS = {
 };
 
 export default function MessagesScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [tab, setTab] = useState('compose'); // compose | inbox | sent
   const [toId, setToId] = useState(null);
@@ -184,6 +186,8 @@ export default function MessagesScreen() {
 }
 
 function Tab({ label, active, onPress }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <TouchableOpacity style={[styles.tab, active && styles.tabOn]} activeOpacity={0.8} onPress={onPress}>
       <Text style={[styles.tabText, active && styles.tabTextOn]}>{label}</Text>
@@ -191,7 +195,7 @@ function Tab({ label, active, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   muted: { color: colors.textMuted, fontSize: font.body },
 
@@ -229,3 +233,5 @@ const styles = StyleSheet.create({
   decideRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   adminNote: { color: colors.textFaint, fontSize: font.small, marginTop: spacing.sm, fontStyle: 'italic' },
 });
+
+const styles = makeStyles(darkColors);

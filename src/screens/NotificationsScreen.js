@@ -4,9 +4,11 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { ScreenHeader, Card, MessageCard } from '../components/UI';
 import { useStore } from '../store/store';
 import { when } from '../utils';
-import { colors, spacing, font } from '../theme';
+import { colors, spacing, font, useTheme, darkColors } from '../theme';
 
 export default function NotificationsScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, currentUser } = useStore();
   const nameFor = (id) => (state.users.find((u) => u.id === id)?.name) || 'Verwaltung';
   const msgs = (state.messages || [])
@@ -28,7 +30,9 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   muted: { color: colors.textMuted, fontSize: font.body },
 });
+
+const styles = makeStyles(darkColors);

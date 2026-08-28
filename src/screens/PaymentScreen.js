@@ -6,9 +6,11 @@ import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { notify } from '../notify';
 import { eur2, dmy, debtIcon } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 export default function PaymentScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [payItem, setPayItem] = useState(null); // einzelner Posten
   const [payAll, setPayAll] = useState(false);
@@ -78,7 +80,7 @@ export default function PaymentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
 
   totalCard: { alignItems: 'center', gap: spacing.sm },
@@ -95,3 +97,5 @@ const styles = StyleSheet.create({
   okTitle: { color: colors.text, fontSize: font.h3, fontWeight: '700' },
   okSub: { color: colors.textMuted, fontSize: font.small, marginTop: spacing.xs, textAlign: 'center' },
 });
+
+const styles = makeStyles(darkColors);

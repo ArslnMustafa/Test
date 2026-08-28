@@ -5,7 +5,7 @@ import { ScreenHeader, Card, Badge, Button } from '../components/UI';
 import { FormModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { eur, when, jobIcon } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 const OFFER_STATUS = {
   pending: { label: 'Ausstehend', tone: 'gold' },
@@ -14,6 +14,8 @@ const OFFER_STATUS = {
 };
 
 export default function JobsScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [offerJob, setOfferJob] = useState(null);
 
@@ -119,7 +121,7 @@ export default function JobsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { paddingTop: spacing.sm, paddingBottom: spacing.xl },
   muted: { color: colors.textMuted, fontSize: font.body },
   section: { color: colors.textMuted, fontSize: font.small, fontWeight: '800', letterSpacing: 0.5, marginHorizontal: spacing.lg, marginTop: spacing.md, marginBottom: spacing.sm, textTransform: 'uppercase' },
@@ -137,3 +139,5 @@ const styles = StyleSheet.create({
   rejNote: { color: '#f87171', fontSize: font.small, marginTop: spacing.sm },
   accNote: { color: colors.greenText, fontSize: font.small, marginTop: spacing.sm },
 });
+
+const styles = makeStyles(darkColors);

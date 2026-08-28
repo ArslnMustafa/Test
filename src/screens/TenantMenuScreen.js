@@ -8,7 +8,7 @@ import { ConfirmModal, FormModal } from '../components/Modals';
 import { useStore } from '../store/store';
 import { notify } from '../notify';
 import { eur, eur2, dmy, when, jobIcon } from '../utils';
-import { colors, spacing, radius, font } from '../theme';
+import { colors, spacing, radius, font, useTheme, darkColors } from '../theme';
 
 // freie Texteingabe -> Kategorie
 function toCategory(txt) {
@@ -67,6 +67,8 @@ function greeting() {
 }
 
 export default function TenantMenuScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const { state, actions, currentUser } = useStore();
   const [view, setView] = useState('menu'); // 'menu' oder Item-Key
   const [payOpen, setPayOpen] = useState(false);
@@ -110,7 +112,7 @@ export default function TenantMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.detailTitle}>{activeItem.icon}  {activeItem.label}</Text>
 
-        {renderDetail(view, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen, photo, pickPhoto })}
+        {renderDetail(view, { styles, colors, state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen, photo, pickPhoto })}
 
         <View style={{ height: spacing.xl }} />
 
@@ -197,7 +199,7 @@ const STATUS_LABEL = {
 };
 
 // Inhalt je Menüpunkt (mit Daten gefüllt oder Platzhalter)
-function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen, photo, pickPhoto }) {
+function renderDetail(key, { styles, colors, state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen, photo, pickPhoto }) {
   // --- Gebäude: Ankündigungen & Werbung ---
   if (key === 'news') {
     const list = state.announcements || [];
@@ -537,6 +539,8 @@ function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor
 }
 
 function KV({ label, value, strong, last }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.kvRow, last && { borderBottomWidth: 0 }]}>
       <Text style={styles.kvLabel}>{label}</Text>
@@ -546,6 +550,8 @@ function KV({ label, value, strong, last }) {
 }
 
 function Tile({ label, value, tone }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   const c = tone === 'red' ? '#f87171' : tone === 'green' ? colors.greenText : tone === 'gold' ? colors.goldSoft : colors.text;
   return (
     <View style={styles.tile}>
@@ -556,6 +562,8 @@ function Tile({ label, value, tone }) {
 }
 
 function TotalRow({ label, value, strong }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.totalRow}>
       <Text style={[styles.totalLabel, strong && { color: colors.text }]}>{label}</Text>
@@ -565,6 +573,8 @@ function TotalRow({ label, value, strong }) {
 }
 
 function ComingSoon({ note }) {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => makeStyles(colors), [colors]);
   return (
     <Card style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
       <Text style={{ fontSize: 30, marginBottom: spacing.sm }}>🚧</Text>
@@ -574,7 +584,7 @@ function ComingSoon({ note }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   content: { padding: spacing.lg, paddingBottom: spacing.xl },
 
   hero: {
@@ -656,3 +666,5 @@ const styles = StyleSheet.create({
   totalLabel: { color: colors.textMuted, fontSize: font.body, fontWeight: '600' },
   totalValue: { color: colors.text, fontSize: font.body, fontWeight: '800', fontVariant: ['tabular-nums'] },
 });
+
+const styles = makeStyles(darkColors);
