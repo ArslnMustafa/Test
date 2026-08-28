@@ -1,10 +1,22 @@
 // Nachrichten – Verwaltung/Eigentümer sendet an Bewohner; alle sehen ihren Posteingang
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { ScreenHeader, Card, MessageCard, Button } from '../components/UI';
+import { ScreenHeader, Card, MessageCard, Button, Badge } from '../components/UI';
 import { useStore } from '../store/store';
-import { when, roleLabel, roleIcon } from '../utils';
+import { when, roleLabel, roleIcon, eur, jobIcon } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
+
+const JOB_STATUS = {
+  open: { label: 'Offen', tone: 'gold' },
+  assigned: { label: 'Vergeben', tone: 'green' },
+  done: { label: 'Erledigt', tone: 'green' },
+  cancelled: { label: 'Storniert', tone: 'red' },
+};
+const OFFER_STATUS = {
+  pending: { label: 'Ausstehend', tone: 'gold' },
+  accepted: { label: 'Angenommen', tone: 'green' },
+  rejected: { label: 'Abgelehnt', tone: 'red' },
+};
 
 export default function MessagesScreen() {
   const { state, actions, currentUser } = useStore();
@@ -25,6 +37,14 @@ export default function MessagesScreen() {
   const inbox = (state.messages || []).filter((m) => m.toUserId === currentUser.id).sort((a, b) => b.at - a.at);
   const outbox = (state.messages || []).filter((m) => m.fromUserId === currentUser.id).sort((a, b) => b.at - a.at);
 
+  // Mängel: Verwalter sieht alle, Eigentümer nur seine
+  const isAdmin = currentUser.role === 'admin';
+  const jobs = (state.jobs || [])
+    .filter((j) => isAdmin || j.ownerId === currentUser.id)
+    .sort((a, b) => b.at - a.at);
+  const craftName = (id) => (state.craftsmen.find((c) => c.id === id)?.name) || 'Handwerker';
+  const openMaengel = jobs.filter((j) => j.status === 'open').length;
+
   const send = () => {
     if (actions.sendMessage(toId, text)) {
       setText('');
@@ -43,8 +63,8 @@ export default function MessagesScreen() {
         {/* Umschalter */}
         <View style={styles.tabs}>
           <Tab label="Senden" active={tab === 'compose'} onPress={() => setTab('compose')} />
-          <Tab label={`Posteingang${inbox.length ? ` (${inbox.length})` : ''}`} active={tab === 'inbox'} onPress={() => setTab('inbox')} />
-          <Tab label="Gesendet" active={tab === 'sent'} onPress={() => setTab('sent')} />
+          <Tab label={`Eingang${inbox.length ? ` (${inbox.length})` : ''}`} active={tab === 'inbox'} onPress={() => setTab('inbox')} />
+          <Tab label={`Mängel${openMaengel ? ` (${openMaengel})` : ''}`} active={tab === 'maengel'} onPress={() => setTab('maengel')} />
         </View>
 
         {/* --- Senden --- */}
@@ -98,14 +118,61 @@ export default function MessagesScreen() {
           </View>
         )}
 
-        {/* --- Gesendet --- */}
-        {tab === 'sent' && (
+        {/* --- Mängel / Reparaturen --- */}
+        {tab === 'maengel' && (
           <View style={{ marginTop: spacing.sm }}>
-            {outbox.length === 0
-              ? <Card><Text style={styles.muted}>Noch keine Nachrichten gesendet.</Text></Card>
-              : outbox.map((m) => (
-                  <MessageCard key={m.id} date={when(m.at)} party={nameFor(m.toUserId)} partyLabel="An" text={m.text} />
-                ))}
+            {jobs.length === 0 ? (
+              <Card><Text style={styles.muted}>Keine Mängelmeldungen.</Text></Card>
+            ) : jobs.map((j) => {
+              const js = JOB_STATUS[j.status] || JOB_STATUS.open;
+              return (
+                <Card key={j.id}>
+                  <View style={styles.between}>
+                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                      <Text style={{ fontSize: 20 }}>{jobIcon(j.category)}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.jTitle}>{j.title}</Text>
+                        <Text style={styles.jSub}>{j.propertyName}{j.source === 'tenant' ? ' · vom Mieter gemeldet' : ''}</Text>
+                      </View>
+                    </View>
+                    <Badge label={js.label} tone={js.tone} />
+                  </View>
+                  {!!j.description && <Text style={styles.jDesc}>{j.description}</Text>}
+
+                  {/* Angebote der Handwerker */}
+                  {(j.offers || []).length === 0 ? (
+                    <Text style={styles.noOffer}>Noch keine Angebote von Handwerkern.</Text>
+                  ) : (
+                    (j.offers || []).map((o) => {
+                      const os = OFFER_STATUS[o.status] || OFFER_STATUS.pending;
+                      return (
+                        <View key={o.id} style={styles.offerBox}>
+                          <View style={styles.between}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.offerName}>{craftName(o.craftsmanId)}</Text>
+                              {!!o.note && <Text style={styles.offerNote}>{o.note}</Text>}
+                            </View>
+                            <Text style={styles.offerPrice}>{eur(o.priceEur)}</Text>
+                          </View>
+                          {/* Nur der Eigentümer entscheidet, solange offen */}
+                          {!isAdmin && j.status === 'open' && o.status === 'pending' ? (
+                            <View style={styles.decideRow}>
+                              <View style={{ flex: 1 }}><Button label="Annehmen" tone="green" onPress={() => actions.acceptOffer(j.id, o.id)} /></View>
+                              <View style={{ flex: 1 }}><Button label="Ablehnen" tone="red" outline onPress={() => actions.rejectOffer(j.id, o.id)} /></View>
+                            </View>
+                          ) : (
+                            <Badge label={os.label} tone={os.tone} />
+                          )}
+                        </View>
+                      );
+                    })
+                  )}
+                  {isAdmin && j.status === 'open' && (
+                    <Text style={styles.adminNote}>Wartet auf Entscheidung des Eigentümers.</Text>
+                  )}
+                </Card>
+              );
+            })}
           </View>
         )}
 
@@ -147,4 +214,16 @@ const styles = StyleSheet.create({
     minHeight: 96, textAlignVertical: 'top',
   },
   hint: { color: colors.textFaint, fontSize: font.small, marginTop: spacing.sm, textAlign: 'center' },
+
+  between: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm },
+  jTitle: { color: colors.text, fontSize: font.body, fontWeight: '800' },
+  jSub: { color: colors.textFaint, fontSize: font.tiny, marginTop: 1 },
+  jDesc: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginBottom: spacing.sm },
+  noOffer: { color: colors.textFaint, fontSize: font.small, fontStyle: 'italic' },
+  offerBox: { backgroundColor: colors.surfaceDark, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginTop: spacing.sm },
+  offerName: { color: colors.text, fontSize: font.body, fontWeight: '700' },
+  offerNote: { color: colors.textMuted, fontSize: font.small, marginTop: 1 },
+  offerPrice: { color: colors.goldSoft, fontSize: font.h3, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  decideRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  adminNote: { color: colors.textFaint, fontSize: font.small, marginTop: spacing.sm, fontStyle: 'italic' },
 });

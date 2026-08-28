@@ -1,6 +1,6 @@
 // 4. Protokolle & Marktplatz – Immobilienmarkt (mit Datenbank)
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { ScreenHeader, Card, Badge, SmallButton, ImagePlaceholder, Button } from '../components/UI';
 import { FormModal, InfoModal } from '../components/Modals';
 import { useStore } from '../store/store';
@@ -54,7 +54,9 @@ export default function MarketScreen() {
 
       {listings.map((l) => (
         <Card key={l.id} style={{ padding: 0, overflow: 'hidden' }}>
-          <ImagePlaceholder style={{ height: 140, borderRadius: 0 }} />
+          {l.imageUrl
+            ? <Image source={{ uri: l.imageUrl }} style={styles.listingImg} resizeMode="cover" />
+            : <ImagePlaceholder style={{ height: 140, borderRadius: 0 }} />}
           <View style={styles.badgeFloat}>
             <Badge label={l.approved ? 'Zu Verkaufen' : '⏳ Wartet auf Freigabe'} tone={l.approved ? 'blue' : 'gold'} />
           </View>
@@ -167,6 +169,7 @@ const styles = StyleSheet.create({
   pendingHintText: { color: colors.goldSoft, fontSize: font.small, fontWeight: '700' },
   approveRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
 
+  listingImg: { width: '100%', height: 160, backgroundColor: colors.surfaceAlt },
   badgeFloat: { position: 'absolute', top: spacing.md, left: spacing.md },
   cardBody: { padding: spacing.lg },
   propTitle: { color: colors.text, fontSize: font.h3, fontWeight: '800' },

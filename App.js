@@ -12,6 +12,7 @@ import PaymentScreen from './src/screens/PaymentScreen';
 import TenantMenuScreen from './src/screens/TenantMenuScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
+import AdminOwnersScreen from './src/screens/AdminOwnersScreen';
 import JobsScreen from './src/screens/JobsScreen';
 import MessagesScreen from './src/screens/MessagesScreen';
 import FundScreen from './src/screens/FundScreen';
@@ -31,6 +32,7 @@ const TAB_DEFS = {
   menu:    { key: 'menu',    label: 'Menü',        icon: '☰', screen: TenantMenuScreen },
   market:  { key: 'market',  label: 'Markt',       icon: '🏢', screen: MarketScreen },
   crafts:  { key: 'crafts',  label: 'Handwerker',  icon: '👷', screen: CraftsmenScreen },
+  owners:  { key: 'owners',  label: 'Eigentümer',  icon: '🏘️', screen: AdminOwnersScreen },
   jobs:    { key: 'jobs',    label: 'Aufträge',    icon: '🛠️', screen: JobsScreen },
   posta:   { key: 'posta',   label: 'Post',        icon: '✉️', screen: MessagesScreen },
   fund:    { key: 'fund',    label: 'Fonds',       icon: '📈', screen: FundScreen },
@@ -38,7 +40,7 @@ const TAB_DEFS = {
 
 // Welche Tabs sieht welche Rolle
 const ROLE_TABS = {
-  admin:   ['home', 'rent', 'posta', 'market', 'crafts', 'fund'],
+  admin:   ['home', 'owners', 'posta', 'market', 'fund'],
   owner:   ['home', 'rent', 'posta', 'market', 'fund'],
   tenant:  ['start', 'bildirim', 'odeme', 'menu'],
   worker:  ['jobs', 'market'],

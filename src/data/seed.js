@@ -12,12 +12,12 @@ export const SEED = {
     { id: 'p5', name: 'Penthouse Latakia', city: 'Latakia', mode: 'long', valueEur: 210000, yearlyRentEur: 13200, monthlyRentEur: 1100, airbnbEstEur: 1900 },
   ],
 
-  // Mieter / Miet-Status
+  // Mieter / Miet-Status (ownerId = zugehöriger Eigentümer)
   tenants: [
-    { id: 't1', name: 'Ahmad K.', propertyName: 'Villa Dummar', status: 'paid', overdueDays: 0, overdueEur: 0, relative: 'Onkel Samir (+963 9…)', log: [] },
-    { id: 't2', name: 'Omar S.', propertyName: 'Apt. Al-Shahba', status: 'overdue', overdueDays: 12, overdueEur: 250, relative: 'Onkel Mahmoud (+963 9…)', log: [] },
-    { id: 't3', name: 'Layla H.', propertyName: 'Penthouse Latakia', status: 'paid', overdueDays: 0, overdueEur: 0, relative: 'Tante Nour (+963 9…)', log: [] },
-    { id: 't4', name: 'Khaled M.', propertyName: 'Studio Homs-Zentrum', status: 'overdue', overdueDays: 5, overdueEur: 400, relative: 'Bruder Ziad (+963 9…)', log: [] },
+    { id: 't1', name: 'Ahmad K.', ownerId: 'u2', propertyName: 'Villa Dummar', status: 'paid', overdueDays: 0, overdueEur: 0, relative: 'Onkel Samir (+963 9…)', log: [] },
+    { id: 't2', name: 'Omar Said', ownerId: 'u2', propertyName: 'Apt. Al-Shahba', city: 'Aleppo', status: 'overdue', overdueDays: 12, overdueEur: 450, relative: 'Onkel Mahmoud (+963 9…)', log: [] },
+    { id: 't3', name: 'Layla H.', ownerId: 'u2', propertyName: 'Penthouse Latakia', status: 'paid', overdueDays: 0, overdueEur: 0, relative: 'Tante Nour (+963 9…)', log: [] },
+    { id: 't4', name: 'Khaled M.', ownerId: 'u2', propertyName: 'Studio Homs-Zentrum', status: 'overdue', overdueDays: 5, overdueEur: 400, relative: 'Bruder Ziad (+963 9…)', log: [] },
   ],
 
   // Handwerker-Marktplatz
@@ -31,18 +31,18 @@ export const SEED = {
 
   // Immobilienmarkt (zum Verkauf). approved:true = vom Verwalter freigegeben (öffentlich sichtbar)
   listings: [
-    { id: 'l1', title: 'Penthouse Al-Malki', city: 'Damaskus', sqm: 180, priceEur: 185000, verifiedTitle: true, status: 'sale', approved: true },
-    { id: 'l2', title: 'Villa Dummar', city: 'Damaskus', sqm: 240, priceEur: 320000, verifiedTitle: true, status: 'sale', approved: true },
-    { id: 'l3', title: 'Apartment Aleppo-Neustadt', city: 'Aleppo', sqm: 110, priceEur: 89000, verifiedTitle: false, status: 'sale', approved: true },
-    { id: 'l4', title: 'Stadthaus Homs', city: 'Homs', sqm: 160, priceEur: 142000, verifiedTitle: true, status: 'sale', approved: true },
-    { id: 'l5', title: 'Meerblick-Wohnung Latakia', city: 'Latakia', sqm: 95, priceEur: 128000, verifiedTitle: true, status: 'sale', approved: true },
+    { id: 'l1', title: 'Penthouse Al-Malki', city: 'Damaskus', sqm: 180, priceEur: 185000, verifiedTitle: true, status: 'sale', approved: true, imageUrl: 'https://picsum.photos/seed/darna-penthouse/640/360' },
+    { id: 'l2', title: 'Villa Dummar', city: 'Damaskus', sqm: 240, priceEur: 320000, verifiedTitle: true, status: 'sale', approved: true, imageUrl: 'https://picsum.photos/seed/darna-villa/640/360' },
+    { id: 'l3', title: 'Apartment Aleppo-Neustadt', city: 'Aleppo', sqm: 110, priceEur: 89000, verifiedTitle: false, status: 'sale', approved: true, imageUrl: 'https://picsum.photos/seed/darna-aleppo/640/360' },
+    { id: 'l4', title: 'Stadthaus Homs', city: 'Homs', sqm: 160, priceEur: 142000, verifiedTitle: true, status: 'sale', approved: true, imageUrl: 'https://picsum.photos/seed/darna-homs/640/360' },
+    { id: 'l5', title: 'Meerblick-Wohnung Latakia', city: 'Latakia', sqm: 95, priceEur: 128000, verifiedTitle: true, status: 'sale', approved: true, imageUrl: 'https://picsum.photos/seed/darna-latakia/640/360' },
   ],
 
-  // Investment-Fonds
+  // Investment-Fonds (exitFeeEur = Gebühr beim Austritt)
   funds: [
-    { id: 'f1', title: 'Wohnkomplex Homs', subtitle: 'Suriye Wiederaufbau Fonds #1', goalEur: 500000, raisedEur: 175000, investors: 45, maxInvestors: 100, minMonthlyEur: 500, joined: false },
-    { id: 'f2', title: 'Gewerbezentrum Aleppo', subtitle: 'Wiederaufbau Fonds #2', goalEur: 750000, raisedEur: 300000, investors: 60, maxInvestors: 150, minMonthlyEur: 750, joined: false },
-    { id: 'f3', title: 'Solarpark Damaskus-Umland', subtitle: 'Grüne Energie Fonds #3', goalEur: 400000, raisedEur: 90000, investors: 22, maxInvestors: 80, minMonthlyEur: 300, joined: false },
+    { id: 'f1', title: 'Wohnkomplex Homs', subtitle: 'Suriye Wiederaufbau Fonds #1', goalEur: 500000, raisedEur: 175000, investors: 45, maxInvestors: 100, minMonthlyEur: 500, exitFeeEur: 250, joined: false },
+    { id: 'f2', title: 'Gewerbezentrum Aleppo', subtitle: 'Wiederaufbau Fonds #2', goalEur: 750000, raisedEur: 300000, investors: 60, maxInvestors: 150, minMonthlyEur: 750, exitFeeEur: 400, joined: false },
+    { id: 'f3', title: 'Solarpark Damaskus-Umland', subtitle: 'Grüne Energie Fonds #3', goalEur: 400000, raisedEur: 90000, investors: 22, maxInvestors: 80, minMonthlyEur: 300, exitFeeEur: 150, joined: false },
   ],
 
   // Benutzerkonten (Login) – je ein Beispiel pro Rolle.
@@ -51,29 +51,48 @@ export const SEED = {
   users: [
     { id: 'u1', name: 'Mustafa Arslan', email: 'admin@darna.app',  password: 'admin123',  role: 'admin' },
     { id: 'u2', name: 'Khaled Haddad',  email: 'owner@darna.app',  password: 'owner123',  role: 'owner' },
-    // tenantId verknüpft den Mieter-Login mit seinem Miet-Datensatz
-    { id: 'u3', name: 'Omar Said',      email: 'tenant@darna.app', password: 'tenant123', role: 'tenant', tenantId: 't2' },
+    // tenantId verknüpft den Mieter-Login mit seinem Miet-Datensatz; ownerId = sein Vermieter
+    { id: 'u3', name: 'Omar Said',      email: 'tenant@darna.app', password: 'tenant123', role: 'tenant', tenantId: 't2', ownerId: 'u2' },
     // craftsmanId verknüpft Firma/Handwerker-Login mit dem Marktplatz-Profil
     { id: 'u4', name: 'Hassan Bau GmbH', email: 'firma@darna.app', password: 'firma123',  role: 'company', craftsmanId: 'c1' },
     { id: 'u5', name: 'Abu Yusuf',      email: 'worker@darna.app', password: 'worker123', role: 'worker', craftsmanId: 'c4' },
   ],
 
-  // Aufträge für Handwerker/Firmen (Job-Anfragen)
+  // Mängel/Aufträge. Fluss: Mieter meldet -> offen -> Handwerker geben Angebote
+  // -> Eigentümer nimmt eines an -> assigned -> done.
+  // status: open | assigned | done | cancelled ; source: tenant | admin
+  // offers[].status: pending | accepted | rejected
   jobs: [
-    { id: 'j1', title: 'Bad-Sanierung',            propertyName: 'Villa Dummar',        city: 'Damaskus', craftsmanId: 'c1', budgetEur: 3500, status: 'new' },
-    { id: 'j2', title: 'Elektrik prüfen',          propertyName: 'Apt. Al-Malki',       city: 'Damaskus', craftsmanId: 'c4', budgetEur: 600,  status: 'new' },
-    { id: 'j3', title: 'Malerarbeiten Wohnzimmer', propertyName: 'Studio Homs-Zentrum', city: 'Homs',     craftsmanId: 'c4', budgetEur: 900,  status: 'accepted' },
-    { id: 'j4', title: 'Fliesen Küche',            propertyName: 'Penthouse Latakia',   city: 'Latakia',  craftsmanId: 'c1', budgetEur: 1800, status: 'done' },
+    {
+      id: 'j1', ownerId: 'u2', tenantId: 't2', propertyName: 'Apt. Al-Shahba', city: 'Aleppo',
+      title: 'Wasserrohrbruch im Bad', description: 'Undichtes Rohr unter dem Waschbecken, Wasser tropft.',
+      category: 'plumbing', source: 'tenant', at: Date.parse('2026-08-22T09:00:00'), status: 'open',
+      offers: [
+        { id: 'o1', craftsmanId: 'c1', priceEur: 320, note: 'Inkl. Material, 1 Tag', status: 'pending', at: Date.parse('2026-08-23T10:00:00') },
+      ],
+    },
+    {
+      id: 'j2', ownerId: 'u2', propertyName: 'Villa Dummar', city: 'Damaskus',
+      title: 'Elektrik: Sicherung fällt aus', description: 'Sicherung im Wohnzimmer springt regelmäßig heraus.',
+      category: 'electrical', source: 'admin', at: Date.parse('2026-08-18T14:00:00'), status: 'open',
+      offers: [],
+    },
+    {
+      id: 'j3', ownerId: 'u2', propertyName: 'Studio Homs-Zentrum', city: 'Homs',
+      title: 'Malerarbeiten Wohnzimmer', description: 'Wände streichen, ca. 40 m².',
+      category: 'painting', source: 'admin', at: Date.parse('2026-08-05T11:00:00'), status: 'assigned',
+      offers: [
+        { id: 'o2', craftsmanId: 'c4', priceEur: 900, note: 'Farbe inklusive', status: 'accepted', at: Date.parse('2026-08-06T09:00:00') },
+      ],
+    },
   ],
 
   // Offene Schuldenposten je Mieter (Borç Listesi / aktuelle Forderungen)
   // status: this_month | overdue | upcoming ; category: rent | electricity | gas | other
   debtItems: [
-    { id: 'd1', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Miete August 2026',   amountEur: 250, surchargeEur: 0, category: 'rent' },
-    { id: 'd4', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Strom August 2026',   amountEur: 45,  surchargeEur: 0, category: 'electricity' },
-    { id: 'd5', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Gas August 2026',     amountEur: 30,  surchargeEur: 0, category: 'gas' },
-    { id: 'd2', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-30T00:00:00'), info: 'Inventar – Feuerlöscher Wartung & Füllung', amountEur: 20, surchargeEur: 0, category: 'other' },
-    { id: 'd3', tenantId: 't2', status: 'overdue',    dueDate: Date.parse('2026-07-31T00:00:00'), info: 'Nebenkosten Juli 2026', amountEur: 90, surchargeEur: 5, category: 'other' },
+    { id: 'd1', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Kaltmiete August 2026', amountEur: 350, surchargeEur: 0, category: 'rent' },
+    { id: 'd4', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Stromrechnung August 2026', amountEur: 50, surchargeEur: 0, category: 'electricity' },
+    { id: 'd5', tenantId: 't2', status: 'this_month', dueDate: Date.parse('2026-08-31T00:00:00'), info: 'Gasrechnung August 2026',   amountEur: 50, surchargeEur: 0, category: 'gas' },
   ],
 
   // Geleistete Zahlungen je Mieter (Ödeme Listesi). method: Kasse | Bank | Online

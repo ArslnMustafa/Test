@@ -10,6 +10,7 @@ import { colors, spacing, radius, font } from '../theme';
 export default function FundScreen() {
   const { state, actions } = useStore();
   const [leaveFor, setLeaveFor] = useState(null); // Fonds, den man verlassen möchte
+  const [joinFor, setJoinFor] = useState(null); // Fonds, dem man beitreten möchte
 
   // Beste Airbnb-Kandidatin: nicht bereits Airbnb, höchstes Potenzial
   const candidate =
@@ -89,7 +90,7 @@ export default function FundScreen() {
                 <Button
                   label="Am Fonds teilnehmen"
                   tone="blue"
-                  onPress={() => actions.joinFund(f.id)}
+                  onPress={() => setJoinFor(f)}
                 />
               )}
               {f.joined && <Text style={styles.joinedNote}>✓ Sie sind an diesem Fonds beteiligt</Text>}
@@ -100,12 +101,23 @@ export default function FundScreen() {
 
       <View style={{ height: spacing.xl }} />
 
-      {/* Bestätigung: Fonds verlassen */}
+      {/* Bestätigung: Fonds beitreten (spezielle Zustimmung) */}
+      <ConfirmModal
+        visible={!!joinFor}
+        title="Verbindliche Teilnahme"
+        message={joinFor ? `Sie treten dem Fonds „${joinFor.title}" mit einem monatlichen Beitrag ab ${eur(joinFor.minMonthlyEur)} bei. Hinweis: Ein Austritt ist nur gegen eine Austrittsgebühr von ${eur(joinFor.exitFeeEur || 0)} möglich. Stimmen Sie zu?` : ''}
+        confirmLabel="Ja, verbindlich teilnehmen"
+        cancelLabel="Abbrechen"
+        onConfirm={() => joinFor && actions.joinFund(joinFor.id)}
+        onClose={() => setJoinFor(null)}
+      />
+
+      {/* Bestätigung: Fonds verlassen (mit Gebühr) */}
       <ConfirmModal
         visible={!!leaveFor}
         title="Beteiligung beenden?"
-        message={leaveFor ? `Möchten Sie Ihre Beteiligung am Fonds „${leaveFor.title}“ wirklich beenden? Ihr monatlicher Beitrag wird gestoppt.` : ''}
-        confirmLabel="Ja, beenden"
+        message={leaveFor ? `Wenn Sie Ihre Beteiligung am Fonds „${leaveFor.title}" beenden, fällt eine Austrittsgebühr von ${eur(leaveFor.exitFeeEur || 0)} an und Ihr monatlicher Beitrag wird gestoppt. Fortfahren?` : ''}
+        confirmLabel="Ja, gegen Gebühr beenden"
         cancelLabel="Abbrechen"
         danger
         onConfirm={() => leaveFor && actions.leaveFund(leaveFor.id)}

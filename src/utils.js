@@ -61,6 +61,17 @@ export function roleIcon(role) {
   })[role] || '👤';
 }
 
+// Icon je Mangel-/Auftrags-Kategorie
+export function jobIcon(category) {
+  return ({
+    plumbing: '🔧',
+    electrical: '⚡',
+    painting: '🎨',
+    heating: '🔥',
+    other: '🛠️',
+  })[category] || '🛠️';
+}
+
 // Icon je Schulden-Kategorie (Miete, Strom, Gas ...)
 export function debtIcon(category) {
   return ({

@@ -146,7 +146,44 @@ function reducer(state, action) {
     case 'SEND_MESSAGE':
       return { ...state, messages: [action.message, ...(state.messages || [])] };
 
-    // ---- Aufträge (Handwerker/Firma) ----
+    // ---- Mängel/Aufträge (Mieter meldet -> Handwerker bietet -> Eigentümer entscheidet) ----
+    case 'ADD_JOB':
+      return { ...state, jobs: [action.job, ...(state.jobs || [])] };
+
+    case 'ADD_OFFER':
+      return {
+        ...state,
+        jobs: (state.jobs || []).map((j) =>
+          j.id === action.jobId ? { ...j, offers: [...(j.offers || []), action.offer] } : j
+        ),
+      };
+
+    case 'ACCEPT_OFFER':
+      return {
+        ...state,
+        jobs: (state.jobs || []).map((j) => {
+          if (j.id !== action.jobId) return j;
+          return {
+            ...j,
+            status: 'assigned',
+            offers: (j.offers || []).map((o) =>
+              o.id === action.offerId ? { ...o, status: 'accepted' } : { ...o, status: 'rejected' }
+            ),
+          };
+        }),
+      };
+
+    case 'REJECT_OFFER':
+      return {
+        ...state,
+        jobs: (state.jobs || []).map((j) =>
+          j.id !== action.jobId ? j : {
+            ...j,
+            offers: (j.offers || []).map((o) => (o.id === action.offerId ? { ...o, status: 'rejected' } : o)),
+          }
+        ),
+      };
+
     case 'SET_JOB_STATUS':
       return {
         ...state,
@@ -233,8 +270,46 @@ export function StoreProvider({ children }) {
     joinFund: (id) => dispatch({ type: 'JOIN_FUND', id }),
     leaveFund: (id) => dispatch({ type: 'LEAVE_FUND', id }),
 
-    // Aufträge: annehmen / als erledigt markieren
-    acceptJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'accepted' }),
+    // Mieter meldet einen Mangel -> neuer offener Auftrag
+    reportDefect: ({ title, description, category }) => {
+      const tenant = (state.tenants || []).find((t) => t.id === state.currentUser?.tenantId)
+        || (state.tenants || []).find((t) => t.id === (state.users.find((u) => u.id === state.currentUserId)?.tenantId));
+      const me = state.users.find((u) => u.id === state.currentUserId);
+      dispatch({
+        type: 'ADD_JOB',
+        job: {
+          id: newId('j'),
+          ownerId: (tenant && tenant.ownerId) || me?.ownerId || null,
+          tenantId: me?.tenantId || null,
+          propertyName: tenant?.propertyName || 'Meine Wohnung',
+          city: tenant?.city || '',
+          title: title || 'Mangel',
+          description: description || '',
+          category: category || 'other',
+          source: 'tenant',
+          at: Date.now(),
+          status: 'open',
+          offers: [],
+        },
+      });
+    },
+
+    // Handwerker/Firma reicht ein Angebot ein (statt direkt anzunehmen)
+    makeOffer: (jobId, priceEur, note) => {
+      const me = state.users.find((u) => u.id === state.currentUserId);
+      const cid = me?.craftsmanId;
+      if (!cid || !priceEur) return false;
+      dispatch({
+        type: 'ADD_OFFER',
+        jobId,
+        offer: { id: newId('o'), craftsmanId: cid, priceEur: Number(priceEur) || 0, note: String(note || ''), status: 'pending', at: Date.now() },
+      });
+      return true;
+    },
+
+    // Eigentümer entscheidet über Angebote
+    acceptOffer: (jobId, offerId) => dispatch({ type: 'ACCEPT_OFFER', jobId, offerId }),
+    rejectOffer: (jobId, offerId) => dispatch({ type: 'REJECT_OFFER', jobId, offerId }),
     completeJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'done' }),
 
     // Einen Schuldenposten bezahlen (erzeugt eine Zahlung)

@@ -13,13 +13,23 @@ export default function HomeScreen() {
   const [detail, setDetail] = useState(null); // ausgewählte Immobilie
 
   // Nur der Verwalter darf Immobilien direkt hinzufügen (Eigentümer nicht)
-  const canAddProperty = currentUser?.role === 'admin';
+  const isAdmin = currentUser?.role === 'admin';
+  const canAddProperty = isAdmin;
 
   // Kennzahlen aus der "Datenbank" berechnen
   const portfolio = state.properties.reduce((s, p) => s + p.valueEur, 0);
   const yearlyRent = state.properties.reduce((s, p) => s + p.yearlyRentEur, 0);
   const monthlyRent = state.properties.reduce((s, p) => s + p.monthlyRentEur, 0);
   const collected = Math.round(yearlyRent * 0.62);
+
+  // Verwalter-Einnahmen: 200 € pro Eigentümer und Monat
+  const ownerCount = state.users.filter((u) => u.role === 'owner').length;
+  const platformMonthly = ownerCount * 200;
+  const platformYearly = platformMonthly * 12;
+
+  // Werte für die Einnahmen-Übersicht (Verwalter sieht Plattform-Einnahmen)
+  const incMonthly = isAdmin ? platformMonthly : monthlyRent;
+  const incYearly = isAdmin ? platformYearly : yearlyRent;
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -42,14 +52,17 @@ export default function HomeScreen() {
       <Card style={styles.incomeCard}>
         <View style={styles.incomeCol}>
           <Text style={styles.incomeLabel}>Diesen Monat</Text>
-          <Text style={styles.incomeValue}>{eur(monthlyRent)}</Text>
+          <Text style={styles.incomeValue}>{eur(incMonthly)}</Text>
         </View>
         <View style={styles.incomeDivider} />
         <View style={styles.incomeCol}>
           <Text style={styles.incomeLabel}>Dieses Jahr</Text>
-          <Text style={styles.incomeValue}>{eur(yearlyRent)}</Text>
+          <Text style={styles.incomeValue}>{eur(incYearly)}</Text>
         </View>
       </Card>
+      {isAdmin && (
+        <Text style={styles.incomeNote}>Plattform-Einnahmen: {ownerCount} Eigentümer × 200 € / Monat</Text>
+      )}
 
       {/* KI-Standortanalyse */}
       <Card style={{ backgroundColor: colors.purpleDark, borderColor: '#3b2d63' }}>
@@ -191,6 +204,7 @@ const styles = StyleSheet.create({
   incomeLabel: { color: colors.textMuted, fontSize: font.small, marginBottom: spacing.xs },
   incomeValue: { color: colors.text, fontSize: font.h2, fontWeight: '800' },
   incomeDivider: { width: 1, alignSelf: 'stretch', backgroundColor: colors.border, marginVertical: spacing.xs },
+  incomeNote: { color: colors.textFaint, fontSize: font.tiny, textAlign: 'center', marginHorizontal: spacing.lg, marginTop: -spacing.xs, marginBottom: spacing.sm },
 
   centerValue: { color: colors.text, fontSize: font.h1, fontWeight: '800', textAlign: 'center', marginBottom: spacing.md },
   compareBox: { backgroundColor: '#2a1f08', borderRadius: radius.md, borderWidth: 1, borderColor: '#4a380f', padding: spacing.md },

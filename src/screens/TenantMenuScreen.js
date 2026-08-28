@@ -3,10 +3,27 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Card, Badge, Button, MessageCard } from '../components/UI';
-import { ConfirmModal } from '../components/Modals';
+import { ConfirmModal, FormModal } from '../components/Modals';
 import { useStore } from '../store/store';
-import { eur, eur2, dmy, when } from '../utils';
+import { eur, eur2, dmy, when, jobIcon } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
+
+// freie Texteingabe -> Kategorie
+function toCategory(txt) {
+  const t = String(txt || '').toLowerCase();
+  if (/sanit|wasser|rohr|abfluss/.test(t)) return 'plumbing';
+  if (/elektr|strom|sicherung/.test(t)) return 'electrical';
+  if (/mal|streich|farbe/.test(t)) return 'painting';
+  if (/heiz|gas|therme/.test(t)) return 'heating';
+  return 'other';
+}
+
+const JOB_STATUS = {
+  open: { label: 'Offen', tone: 'gold' },
+  assigned: { label: 'Vergeben', tone: 'green' },
+  done: { label: 'Erledigt', tone: 'green' },
+  cancelled: { label: 'Storniert', tone: 'red' },
+};
 
 // Menügruppen (deutsches Label + türkischer Referenzname als Untertitel)
 const GROUPS = [
@@ -15,6 +32,7 @@ const GROUPS = [
     hint: 'Mesken Raporları',
     icon: '🪪',
     items: [
+      { key: 'maengel',     icon: '🛠️', label: 'Schaden melden',     hint: 'Arıza / Mängel' },
       { key: 'messages',    icon: '💬', label: 'Nachrichten',        hint: 'Mesajlar' },
       { key: 'debts',       icon: '🧾', label: 'Meine Schulden',     hint: 'Borçlarım' },
       { key: 'payments',    icon: '💳', label: 'Meine Zahlungen',    hint: 'Ödemelerim' },
@@ -50,6 +68,10 @@ export default function TenantMenuScreen() {
   const { state, actions, currentUser } = useStore();
   const [view, setView] = useState('menu'); // 'menu' oder Item-Key
   const [payOpen, setPayOpen] = useState(false);
+  const [maengelOpen, setMaengelOpen] = useState(false);
+
+  // eigene Mängelmeldungen
+  const myJobs = (state.jobs || []).filter((j) => j.tenantId === currentUser?.tenantId).sort((a, b) => b.at - a.at);
 
   const tenant = state.tenants.find((t) => t.id === currentUser?.tenantId) || null;
   const allItems = GROUPS.flatMap((g) => g.items);
@@ -75,7 +97,7 @@ export default function TenantMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.detailTitle}>{activeItem.icon}  {activeItem.label}</Text>
 
-        {renderDetail(view, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments })}
+        {renderDetail(view, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen })}
 
         <View style={{ height: spacing.xl }} />
 
@@ -89,6 +111,20 @@ export default function TenantMenuScreen() {
             onClose={() => setPayOpen(false)}
           />
         )}
+
+        {/* Neuen Mangel melden */}
+        <FormModal
+          visible={maengelOpen}
+          title="Schaden / Mangel melden"
+          submitLabel="An Verwaltung senden"
+          fields={[
+            { key: 'title', label: 'Kurzbeschreibung', placeholder: 'z. B. Wasserrohrbruch im Bad' },
+            { key: 'area', label: 'Bereich', placeholder: 'z. B. Sanitär, Elektrik, Heizung' },
+            { key: 'description', label: 'Details', placeholder: 'Was ist genau das Problem?' },
+          ]}
+          onSubmit={(v) => actions.reportDefect({ title: v.title, description: v.description, category: toCategory(v.area || v.title) })}
+          onClose={() => setMaengelOpen(false)}
+        />
       </ScrollView>
     );
   }
@@ -106,7 +142,7 @@ export default function TenantMenuScreen() {
         <View key={g.title}>
           <Text style={styles.groupTitle}>{g.icon}  {g.title.toUpperCase()}</Text>
           {g.items.map((it) => {
-            const badge = itemBadge(it.key, tenant, { msgCount: myMessages.length, debtCount: myDebts.length, payCount: myPayments.length });
+            const badge = itemBadge(it.key, tenant, { msgCount: myMessages.length, debtCount: myDebts.length, payCount: myPayments.length, maengelCount: myJobs.filter((j) => j.status !== 'done').length });
             return (
               <TouchableOpacity key={it.key} activeOpacity={0.8} onPress={() => setView(it.key)}>
                 <View style={styles.row}>
@@ -130,7 +166,8 @@ export default function TenantMenuScreen() {
 }
 
 // Kleiner Status-Badge an bestimmten Menüpunkten
-function itemBadge(key, tenant, { msgCount, debtCount, payCount } = {}) {
+function itemBadge(key, tenant, { msgCount, debtCount, payCount, maengelCount } = {}) {
+  if (key === 'maengel' && maengelCount > 0) return <Badge label={String(maengelCount)} tone="gold" />;
   if (key === 'messages' && msgCount > 0) return <Badge label={String(msgCount)} tone="blue" />;
   if (key === 'debtlist' && debtCount > 0) return <Badge label={String(debtCount)} tone="gold" />;
   if (key === 'payments' && payCount > 0) return <Badge label={String(payCount)} tone="blue" />;
@@ -147,7 +184,46 @@ const STATUS_LABEL = {
 };
 
 // Inhalt je Menüpunkt (mit Daten gefüllt oder Platzhalter)
-function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments }) {
+function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen }) {
+  // Schaden melden + Status der eigenen Meldungen
+  if (key === 'maengel') {
+    return (
+      <View>
+        <Button label="＋ Neuen Schaden melden" tone="gold" onPress={() => setMaengelOpen(true)} />
+        <View style={{ height: spacing.md }} />
+        {(!myJobs || myJobs.length === 0) ? (
+          <ComingSoon note="Sie haben noch keine Schäden gemeldet." />
+        ) : (
+          myJobs.map((j) => {
+            const js = JOB_STATUS[j.status] || JOB_STATUS.open;
+            const accepted = (j.offers || []).find((o) => o.status === 'accepted');
+            return (
+              <Card key={j.id}>
+                <View style={styles.between}>
+                  <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                    <Text style={{ fontSize: 20 }}>{jobIcon(j.category)}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardTitle}>{j.title}</Text>
+                      <Text style={styles.jSub}>{dmy(j.at)}</Text>
+                    </View>
+                  </View>
+                  <Badge label={js.label} tone={js.tone} />
+                </View>
+                {!!j.description && <Text style={styles.jDesc}>{j.description}</Text>}
+                <Text style={styles.jStatus}>
+                  {j.status === 'open' && `${(j.offers || []).length} Angebot(e) · wartet auf Freigabe des Eigentümers`}
+                  {j.status === 'assigned' && accepted && `Vergeben · ${eur(accepted.priceEur)}`}
+                  {j.status === 'done' && 'Reparatur abgeschlossen ✓'}
+                </Text>
+              </Card>
+            );
+          })
+        )}
+      </View>
+    );
+  }
+
+
   // Borç Listesi – detaillierte Schuldenposten mit Summen
   if (key === 'debtlist') {
     if (!myDebts || myDebts.length === 0) return <ComingSoon note="Keine offenen Schuldenposten." />;
@@ -326,6 +402,9 @@ const styles = StyleSheet.create({
 
   between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   cardTitle: { color: colors.text, fontSize: font.h3, fontWeight: '700' },
+  jSub: { color: colors.textFaint, fontSize: font.tiny, marginTop: 1 },
+  jDesc: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginBottom: spacing.sm },
+  jStatus: { color: colors.blueSoft, fontSize: font.small, fontWeight: '600' },
   debtLine: { color: '#f87171', fontSize: font.h3, fontWeight: '800' },
   debtSub: { color: colors.textMuted, fontSize: font.small, marginBottom: spacing.md },
   ok: { color: colors.greenText, fontSize: font.body, fontWeight: '600' },
