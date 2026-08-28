@@ -1,7 +1,8 @@
 // Darna – ImmoScout-ähnliche App für syrischstämmige Eigentümer in Deutschland
 // Eigene Bottom-Tab-Navigation + lokale Datenbank (Store).
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Platform, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from './src/screens/HomeScreen';
 import RentScreen from './src/screens/RentScreen';
@@ -13,18 +14,23 @@ import TenantMenuScreen from './src/screens/TenantMenuScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
 import AdminOwnersScreen from './src/screens/AdminOwnersScreen';
+import AdminPanelScreen from './src/screens/AdminPanelScreen';
 import JobsScreen from './src/screens/JobsScreen';
 import MessagesScreen from './src/screens/MessagesScreen';
 import FundScreen from './src/screens/FundScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import { StoreProvider, useStore } from './src/store/store';
 import { roleLabel, roleIcon } from './src/utils';
 import { colors, spacing, font, radius } from './src/theme';
+
+const ONBOARD_KEY = 'darna:onboarded:v1';
 
 // Alle verfügbaren Tabs
 const TAB_DEFS = {
   home:    { key: 'home',    label: 'Home',        icon: '🏠', screen: HomeScreen },
   rent:    { key: 'rent',    label: 'Miete',       icon: '📋', screen: RentScreen },
+  verwaltung: { key: 'verwaltung', label: 'Verwaltung', icon: '⚙️', screen: AdminPanelScreen },
   // Mieter-Modul (Wohnungsverwaltung)
   start:   { key: 'start',   label: 'Startseite',  icon: '🏠', screen: TenantHomeScreen },
   bildirim:{ key: 'bildirim',label: 'Mitteilungen', icon: '🔔', screen: NotificationsScreen },
@@ -40,7 +46,7 @@ const TAB_DEFS = {
 
 // Welche Tabs sieht welche Rolle
 const ROLE_TABS = {
-  admin:   ['home', 'owners', 'posta', 'market', 'fund'],
+  admin:   ['home', 'owners', 'verwaltung', 'posta', 'market'],
   owner:   ['home', 'rent', 'posta', 'market', 'fund'],
   tenant:  ['start', 'bildirim', 'odeme', 'menu'],
   worker:  ['jobs', 'market'],
@@ -109,12 +115,34 @@ function Shell() {
 }
 
 export default function App() {
+  // Onboarding-Status: null = wird geladen, false = zeigen, true = fertig
+  const [onboarded, setOnboarded] = useState(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(ONBOARD_KEY)
+      .then((v) => setOnboarded(v === '1'))
+      .catch(() => setOnboarded(true));
+  }, []);
+
+  const finishOnboarding = () => {
+    setOnboarded(true);
+    AsyncStorage.setItem(ONBOARD_KEY, '1').catch(() => {});
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-      <StoreProvider>
-        <Shell />
-      </StoreProvider>
+      {onboarded === false ? (
+        <OnboardingScreen onDone={finishOnboarding} />
+      ) : onboarded === null ? (
+        <View style={[styles.body, styles.center]}>
+          <ActivityIndicator color={colors.gold} size="large" />
+        </View>
+      ) : (
+        <StoreProvider>
+          <Shell />
+        </StoreProvider>
+      )}
     </SafeAreaView>
   );
 }

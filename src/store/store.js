@@ -142,6 +142,16 @@ function reducer(state, action) {
       };
     }
 
+    // ---- Verwaltung: Inhalte ----
+    case 'ADD_ANNOUNCEMENT':
+      return { ...state, announcements: [action.item, ...(state.announcements || [])] };
+
+    case 'ADD_DEBT':
+      return { ...state, debtItems: [...(state.debtItems || []), action.item] };
+
+    case 'ADD_USER':
+      return { ...state, users: [...(state.users || []), action.user] };
+
     // ---- Nachrichten ----
     case 'SEND_MESSAGE':
       return { ...state, messages: [action.message, ...(state.messages || [])] };
@@ -314,6 +324,36 @@ export function StoreProvider({ children }) {
 
     // Einen Schuldenposten bezahlen (erzeugt eine Zahlung)
     payDebt: (id) => dispatch({ type: 'PAY_DEBT', id }),
+
+    // --- Verwaltung: Inhalte erstellen ---
+    // Ankündigung veröffentlichen
+    addAnnouncement: ({ title, text, kind }) =>
+      dispatch({
+        type: 'ADD_ANNOUNCEMENT',
+        item: { id: newId('an'), at: Date.now(), kind: kind || 'info', title: title || 'Ankündigung', text: text || '' },
+      }),
+    // Forderung (Schuldenposten) für einen Mieter anlegen
+    addDebt: (tenantId, { info, amountEur, category }) =>
+      dispatch({
+        type: 'ADD_DEBT',
+        item: {
+          id: newId('d'), tenantId, status: 'this_month',
+          dueDate: Date.now() + 7 * 24 * 3600 * 1000,
+          info: info || 'Forderung', amountEur: Number(amountEur) || 0, surchargeEur: 0,
+          category: category || 'other',
+        },
+      }),
+    // Neues Benutzerkonto anlegen
+    addUser: ({ name, email, password, role }) => {
+      const e = String(email || '').trim().toLowerCase();
+      if (!name || !e || !password) return false;
+      if ((state.users || []).some((u) => u.email.toLowerCase() === e)) return false;
+      dispatch({
+        type: 'ADD_USER',
+        user: { id: newId('u'), name, email: e, password, role: role || 'tenant' },
+      });
+      return true;
+    },
 
     // Nachricht senden (Absender = aktueller Benutzer)
     sendMessage: (toUserId, text) => {
