@@ -1,6 +1,6 @@
 // Nachrichten – Verwaltung/Eigentümer sendet an Bewohner; alle sehen ihren Posteingang
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { ScreenHeader, Card, MessageCard, Button, Badge } from '../components/UI';
 import { useStore } from '../store/store';
 import { when, roleLabel, roleIcon, eur, jobIcon } from '../utils';
@@ -138,6 +138,7 @@ export default function MessagesScreen() {
                     <Badge label={js.label} tone={js.tone} />
                   </View>
                   {!!j.description && <Text style={styles.jDesc}>{j.description}</Text>}
+                  {!!j.photo && <Image source={{ uri: j.photo }} style={styles.jobPhoto} />}
 
                   {/* Angebote der Handwerker */}
                   {(j.offers || []).length === 0 ? (
@@ -219,6 +220,7 @@ const styles = StyleSheet.create({
   jTitle: { color: colors.text, fontSize: font.body, fontWeight: '800' },
   jSub: { color: colors.textFaint, fontSize: font.tiny, marginTop: 1 },
   jDesc: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginBottom: spacing.sm },
+  jobPhoto: { width: '100%', height: 160, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, marginBottom: spacing.sm },
   noOffer: { color: colors.textFaint, fontSize: font.small, fontStyle: 'italic' },
   offerBox: { backgroundColor: colors.surfaceDark, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginTop: spacing.sm },
   offerName: { color: colors.text, fontSize: font.body, fontWeight: '700' },

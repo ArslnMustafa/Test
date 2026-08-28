@@ -1,10 +1,12 @@
 // Mieter-Modul – Menü/Hub mit Wohnungs- und Gebäudeberichten.
 // Struktur wie in der Referenz-App; Inhalte werden nach und nach gefüllt.
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Card, Badge, Button, MessageCard } from '../components/UI';
 import { ConfirmModal, FormModal } from '../components/Modals';
 import { useStore } from '../store/store';
+import { notify } from '../notify';
 import { eur, eur2, dmy, when, jobIcon } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
@@ -69,6 +71,17 @@ export default function TenantMenuScreen() {
   const [view, setView] = useState('menu'); // 'menu' oder Item-Key
   const [payOpen, setPayOpen] = useState(false);
   const [maengelOpen, setMaengelOpen] = useState(false);
+  const [photo, setPhoto] = useState(null); // Foto-URI für die Mängelmeldung
+
+  // Foto aus der Galerie wählen
+  const pickPhoto = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return;
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.6 });
+      if (!res.canceled && res.assets?.[0]?.uri) setPhoto(res.assets[0].uri);
+    } catch (e) { /* ignorieren */ }
+  };
 
   // eigene Mängelmeldungen
   const myJobs = (state.jobs || []).filter((j) => j.tenantId === currentUser?.tenantId).sort((a, b) => b.at - a.at);
@@ -97,7 +110,7 @@ export default function TenantMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.detailTitle}>{activeItem.icon}  {activeItem.label}</Text>
 
-        {renderDetail(view, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen })}
+        {renderDetail(view, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen, photo, pickPhoto })}
 
         <View style={{ height: spacing.xl }} />
 
@@ -122,7 +135,7 @@ export default function TenantMenuScreen() {
             { key: 'area', label: 'Bereich', placeholder: 'z. B. Sanitär, Elektrik, Heizung' },
             { key: 'description', label: 'Details', placeholder: 'Was ist genau das Problem?' },
           ]}
-          onSubmit={(v) => actions.reportDefect({ title: v.title, description: v.description, category: toCategory(v.area || v.title) })}
+          onSubmit={(v) => { actions.reportDefect({ title: v.title, description: v.description, category: toCategory(v.area || v.title), photo }); setPhoto(null); notify('Schaden gemeldet', 'Ihre Meldung wurde an die Verwaltung übermittelt.'); }}
           onClose={() => setMaengelOpen(false)}
         />
       </ScrollView>
@@ -184,7 +197,7 @@ const STATUS_LABEL = {
 };
 
 // Inhalt je Menüpunkt (mit Daten gefüllt oder Platzhalter)
-function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen }) {
+function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen, photo, pickPhoto }) {
   // --- Gebäude: Ankündigungen & Werbung ---
   if (key === 'news') {
     const list = state.announcements || [];
@@ -354,6 +367,13 @@ function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor
   if (key === 'maengel') {
     return (
       <View>
+        {/* Optionales Foto zur nächsten Meldung */}
+        <View style={styles.photoBar}>
+          <TouchableOpacity style={styles.photoBtn} activeOpacity={0.8} onPress={pickPhoto}>
+            <Text style={styles.photoBtnText}>📷 {photo ? 'Foto ändern' : 'Foto hinzufügen'}</Text>
+          </TouchableOpacity>
+          {!!photo && <Image source={{ uri: photo }} style={styles.photoThumb} />}
+        </View>
         <Button label="＋ Neuen Schaden melden" tone="gold" onPress={() => setMaengelOpen(true)} />
         <View style={{ height: spacing.md }} />
         {(!myJobs || myJobs.length === 0) ? (
@@ -375,6 +395,7 @@ function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor
                   <Badge label={js.label} tone={js.tone} />
                 </View>
                 {!!j.description && <Text style={styles.jDesc}>{j.description}</Text>}
+                {!!j.photo && <Image source={{ uri: j.photo }} style={styles.jobPhoto} />}
                 <Text style={styles.jStatus}>
                   {j.status === 'open' && `${(j.offers || []).length} Angebot(e) · wartet auf Freigabe des Eigentümers`}
                   {j.status === 'assigned' && accepted && `Vergeben · ${eur(accepted.priceEur)}`}
@@ -605,6 +626,12 @@ const styles = StyleSheet.create({
 
   rcRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rcAmt: { color: colors.text, fontSize: font.h3, fontWeight: '800', fontVariant: ['tabular-nums'] },
+
+  photoBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
+  photoBtn: { flex: 1, backgroundColor: colors.surfaceAlt, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, paddingVertical: spacing.md, alignItems: 'center' },
+  photoBtnText: { color: colors.text, fontSize: font.body, fontWeight: '700' },
+  photoThumb: { width: 48, height: 48, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
+  jobPhoto: { width: '100%', height: 160, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, marginBottom: spacing.sm },
   debtLine: { color: '#f87171', fontSize: font.h3, fontWeight: '800' },
   debtSub: { color: colors.textMuted, fontSize: font.small, marginBottom: spacing.md },
   ok: { color: colors.greenText, fontSize: font.body, fontWeight: '600' },

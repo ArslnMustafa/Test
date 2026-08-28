@@ -281,7 +281,7 @@ export function StoreProvider({ children }) {
     leaveFund: (id) => dispatch({ type: 'LEAVE_FUND', id }),
 
     // Mieter meldet einen Mangel -> neuer offener Auftrag
-    reportDefect: ({ title, description, category }) => {
+    reportDefect: ({ title, description, category, photo }) => {
       const tenant = (state.tenants || []).find((t) => t.id === state.currentUser?.tenantId)
         || (state.tenants || []).find((t) => t.id === (state.users.find((u) => u.id === state.currentUserId)?.tenantId));
       const me = state.users.find((u) => u.id === state.currentUserId);
@@ -296,6 +296,7 @@ export function StoreProvider({ children }) {
           title: title || 'Mangel',
           description: description || '',
           category: category || 'other',
+          photo: photo || null,
           source: 'tenant',
           at: Date.now(),
           status: 'open',

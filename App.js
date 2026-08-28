@@ -21,6 +21,9 @@ import FundScreen from './src/screens/FundScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import { StoreProvider, useStore } from './src/store/store';
+import { InfoModal } from './src/components/Modals';
+import { Button } from './src/components/UI';
+import { notify } from './src/notify';
 import { roleLabel, roleIcon } from './src/utils';
 import { colors, spacing, font, radius } from './src/theme';
 
@@ -56,6 +59,8 @@ const ROLE_TABS = {
 function Shell() {
   const { state, actions, currentUser } = useStore();
   const [active, setActive] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [testMsg, setTestMsg] = useState('');
 
   // Kurzer Ladezustand, bis die Datenbank aus dem Speicher gelesen ist
   if (!state.loaded) {
@@ -88,10 +93,27 @@ function Shell() {
             <Text style={styles.userRole}>{roleLabel(currentUser.role)}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8} onPress={actions.logout}>
-          <Text style={styles.logoutText}>Abmelden</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <TouchableOpacity style={styles.gearBtn} activeOpacity={0.8} onPress={() => setSettingsOpen(true)}>
+            <Text style={styles.gearText}>⚙️</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8} onPress={actions.logout}>
+            <Text style={styles.logoutText}>Abmelden</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Einstellungen */}
+      <InfoModal visible={settingsOpen} title="Einstellungen" onClose={() => setSettingsOpen(false)}>
+        <Text style={styles.setLabel}>Benachrichtigungen</Text>
+        <Text style={styles.setText}>Erhalten Sie Hinweise zu Zahlungen, Mängeln und Nachrichten.</Text>
+        <Button
+          label={testMsg || 'Test-Benachrichtigung senden'}
+          tone="blue"
+          onPress={async () => { const ok = await notify('Darna', 'Test-Benachrichtigung ✓'); setTestMsg(ok ? '✓ Gesendet' : 'Nicht verfügbar auf diesem Gerät'); setTimeout(() => setTestMsg(''), 2500); }}
+        />
+        <Text style={[styles.setText, { marginTop: spacing.lg }]}>Weitere Optionen (Sprache, Design) folgen in Kürze.</Text>
+      </InfoModal>
 
       <View style={styles.body}>
         <ActiveScreen />
@@ -167,6 +189,12 @@ const styles = StyleSheet.create({
   userIcon: { fontSize: 22 },
   userName: { color: colors.text, fontSize: font.small, fontWeight: '700' },
   userRole: { color: colors.gold, fontSize: font.tiny, fontWeight: '600' },
+  gearBtn: {
+    width: 34, height: 34, borderRadius: radius.pill,
+    borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceAlt,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  gearText: { fontSize: 16 },
   logoutBtn: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -176,6 +204,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   logoutText: { color: colors.textMuted, fontSize: font.small, fontWeight: '700' },
+  setLabel: { color: colors.text, fontSize: font.body, fontWeight: '800', marginBottom: spacing.xs },
+  setText: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginBottom: spacing.md },
 
   tabBar: {
     flexDirection: 'row',

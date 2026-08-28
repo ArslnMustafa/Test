@@ -1,6 +1,6 @@
 // Handwerker/Firma – offene Ausschreibungen: Angebot senden (Eigentümer entscheidet)
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { ScreenHeader, Card, Badge, Button } from '../components/UI';
 import { FormModal } from '../components/Modals';
 import { useStore } from '../store/store';
@@ -49,6 +49,7 @@ export default function JobsScreen() {
               </View>
             </View>
             {!!j.description && <Text style={styles.jDesc}>{j.description}</Text>}
+            {!!j.photo && <Image source={{ uri: j.photo }} style={styles.jobPhoto} />}
             {mine ? (
               <View style={styles.offerRow}>
                 <Text style={styles.offerText}>Ihr Angebot: {eur(mine.priceEur)}</Text>
@@ -129,6 +130,7 @@ const styles = StyleSheet.create({
   jTitle: { color: colors.text, fontSize: font.body, fontWeight: '800' },
   jSub: { color: colors.textFaint, fontSize: font.small, marginTop: 2 },
   jDesc: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginVertical: spacing.md },
+  jobPhoto: { width: '100%', height: 160, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, marginBottom: spacing.md },
 
   offerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md },
   offerText: { color: colors.text, fontSize: font.body, fontWeight: '700' },

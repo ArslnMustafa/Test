@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { ScreenHeader, Card, Button } from '../components/UI';
 import { ConfirmModal } from '../components/Modals';
 import { useStore } from '../store/store';
+import { notify } from '../notify';
 import { eur2, dmy, debtIcon } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
@@ -16,7 +17,7 @@ export default function PaymentScreen() {
   const debts = (state.debtItems || []).filter((d) => d.tenantId === tid);
   const total = debts.reduce((a, d) => a + d.amountEur + d.surchargeEur, 0);
 
-  const doPayAll = () => debts.forEach((d) => actions.payDebt(d.id));
+  const doPayAll = () => { debts.forEach((d) => actions.payDebt(d.id)); notify('Zahlung erfolgreich', `${eur2(total)} wurden verbucht.`); };
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -62,7 +63,7 @@ export default function PaymentScreen() {
         title="Zahlung bestätigen?"
         message={payItem ? `„${payItem.info}" über ${eur2(payItem.amountEur + payItem.surchargeEur)} jetzt bezahlen?` : ''}
         confirmLabel="Ja, bezahlen"
-        onConfirm={() => payItem && actions.payDebt(payItem.id)}
+        onConfirm={() => { if (payItem) { actions.payDebt(payItem.id); notify('Zahlung erfolgreich', `${eur2(payItem.amountEur + payItem.surchargeEur)} wurden verbucht.`); } }}
         onClose={() => setPayItem(null)}
       />
       <ConfirmModal
