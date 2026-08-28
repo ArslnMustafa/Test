@@ -2,22 +2,24 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useStore } from '../store/store';
-import { roleLabel, roleIcon } from '../utils';
+import { useLang } from '../i18n';
+import { roleIcon } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function LoginScreen() {
   const { state, actions } = useStore();
+  const { t } = useLang();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const submit = () => {
     if (!email || !password) {
-      setError('Bitte E-Mail und Passwort eingeben.');
+      setError(t('login.errEmpty'));
       return;
     }
     const ok = actions.login(email, password);
-    if (!ok) setError('E-Mail oder Passwort ist falsch.');
+    if (!ok) setError(t('login.errWrong'));
   };
 
   // Schnell-Login: füllt die Felder eines Demo-Kontos aus
@@ -34,12 +36,12 @@ export default function LoginScreen() {
         <View style={styles.brand}>
           <View style={styles.logo}><Text style={styles.logoText}>د</Text></View>
           <Text style={styles.title}>Darna</Text>
-          <Text style={styles.subtitle}>Immobilien-Verwaltung · إدارة العقارات</Text>
+          <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
         </View>
 
         {/* Anmeldeformular */}
         <View style={styles.card}>
-          <Text style={styles.label}>E-Mail</Text>
+          <Text style={styles.label}>{t('login.email')}</Text>
           <TextInput
             style={styles.input}
             placeholder="name@darna.app"
@@ -50,7 +52,7 @@ export default function LoginScreen() {
             onChangeText={(v) => { setEmail(v); setError(''); }}
           />
 
-          <Text style={[styles.label, { marginTop: spacing.md }]}>Passwort</Text>
+          <Text style={[styles.label, { marginTop: spacing.md }]}>{t('login.password')}</Text>
           <TextInput
             style={styles.input}
             placeholder="••••••••"
@@ -63,17 +65,17 @@ export default function LoginScreen() {
           {!!error && <Text style={styles.error}>{error}</Text>}
 
           <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={submit}>
-            <Text style={styles.buttonText}>Anmelden</Text>
+            <Text style={styles.buttonText}>{t('login.signIn')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Demo-Konten (zum schnellen Testen) */}
-        <Text style={styles.demoTitle}>Demo-Konten (tippen zum Ausfüllen)</Text>
+        <Text style={styles.demoTitle}>{t('login.demo')}</Text>
         {state.users.map((u) => (
           <TouchableOpacity key={u.id} style={styles.demoRow} activeOpacity={0.8} onPress={() => quickFill(u)}>
             <View style={styles.demoIcon}><Text style={{ fontSize: 18 }}>{roleIcon(u.role)}</Text></View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.demoName}>{u.name} · {roleLabel(u.role)}</Text>
+              <Text style={styles.demoName}>{u.name} · {t('role.' + u.role)}</Text>
               <Text style={styles.demoCred}>{u.email} · {u.password}</Text>
             </View>
           </TouchableOpacity>

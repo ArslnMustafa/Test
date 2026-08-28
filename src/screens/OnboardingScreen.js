@@ -1,19 +1,21 @@
 // Onboarding – kurze Vorstellung beim ersten Start
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { useLang } from '../i18n';
 import { colors, spacing, radius, font } from '../theme';
 
 const { width } = Dimensions.get('window');
 
-const SLIDES = [
-  { icon: '🏠', title: 'Willkommen bei Darna', text: 'Ihre Immobilien, Mieten und die Hausverwaltung – alles an einem Ort.' },
-  { icon: '💳', title: 'Alles im Blick', text: 'Forderungen einsehen, bequem bezahlen und jede Zahlung nachverfolgen.' },
-  { icon: '🛠️', title: 'Schnelle Hilfe', text: 'Mängel melden, Handwerker-Angebote erhalten und Nachrichten der Verwaltung empfangen.' },
-];
-
 export default function OnboardingScreen({ onDone }) {
+  const { t } = useLang();
   const ref = useRef(null);
   const [i, setI] = useState(0);
+
+  const SLIDES = [
+    { icon: '🏠', title: t('onb.t1'), text: t('onb.x1') },
+    { icon: '💳', title: t('onb.t2'), text: t('onb.x2') },
+    { icon: '🛠️', title: t('onb.t3'), text: t('onb.x3') },
+  ];
 
   const go = (idx) => {
     ref.current?.scrollTo({ x: idx * width, animated: true });
@@ -24,7 +26,7 @@ export default function OnboardingScreen({ onDone }) {
   return (
     <View style={styles.root}>
       <TouchableOpacity style={styles.skip} onPress={onDone} activeOpacity={0.7}>
-        <Text style={styles.skipText}>Überspringen</Text>
+        <Text style={styles.skipText}>{t('onb.skip')}</Text>
       </TouchableOpacity>
 
       <ScrollView
@@ -51,7 +53,7 @@ export default function OnboardingScreen({ onDone }) {
 
       <View style={styles.footer}>
         <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={next}>
-          <Text style={styles.buttonText}>{i === SLIDES.length - 1 ? "Los geht's" : 'Weiter'}</Text>
+          <Text style={styles.buttonText}>{i === SLIDES.length - 1 ? t('onb.start') : t('onb.next')}</Text>
         </TouchableOpacity>
       </View>
     </View>

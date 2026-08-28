@@ -21,10 +21,11 @@ import FundScreen from './src/screens/FundScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import { StoreProvider, useStore } from './src/store/store';
+import { LanguageProvider, useLang, LANGUAGES } from './src/i18n';
 import { InfoModal } from './src/components/Modals';
 import { Button } from './src/components/UI';
 import { notify } from './src/notify';
-import { roleLabel, roleIcon } from './src/utils';
+import { roleIcon } from './src/utils';
 import { colors, spacing, font, radius } from './src/theme';
 
 const ONBOARD_KEY = 'darna:onboarded:v1';
@@ -58,6 +59,7 @@ const ROLE_TABS = {
 
 function Shell() {
   const { state, actions, currentUser } = useStore();
+  const { t, lang, setLang } = useLang();
   const [active, setActive] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [testMsg, setTestMsg] = useState('');
@@ -90,7 +92,7 @@ function Shell() {
           <Text style={styles.userIcon}>{roleIcon(currentUser.role)}</Text>
           <View>
             <Text style={styles.userName}>{currentUser.name}</Text>
-            <Text style={styles.userRole}>{roleLabel(currentUser.role)}</Text>
+            <Text style={styles.userRole}>{t('role.' + currentUser.role)}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
@@ -98,21 +100,35 @@ function Shell() {
             <Text style={styles.gearText}>⚙️</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8} onPress={actions.logout}>
-            <Text style={styles.logoutText}>Abmelden</Text>
+            <Text style={styles.logoutText}>{t('common.logout')}</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Einstellungen */}
-      <InfoModal visible={settingsOpen} title="Einstellungen" onClose={() => setSettingsOpen(false)}>
-        <Text style={styles.setLabel}>Benachrichtigungen</Text>
-        <Text style={styles.setText}>Erhalten Sie Hinweise zu Zahlungen, Mängeln und Nachrichten.</Text>
+      <InfoModal visible={settingsOpen} title={t('set.title')} onClose={() => setSettingsOpen(false)}>
+        <Text style={styles.setLabel}>{t('set.language')}</Text>
+        <View style={styles.langRow}>
+          {LANGUAGES.map((l) => (
+            <TouchableOpacity
+              key={l.code}
+              activeOpacity={0.8}
+              onPress={() => setLang(l.code)}
+              style={[styles.langChip, lang === l.code && styles.langChipOn]}
+            >
+              <Text style={styles.langFlag}>{l.flag}</Text>
+              <Text style={[styles.langText, lang === l.code && styles.langTextOn]}>{l.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={[styles.setLabel, { marginTop: spacing.lg }]}>{t('set.notifications')}</Text>
+        <Text style={styles.setText}>{t('set.notifDesc')}</Text>
         <Button
-          label={testMsg || 'Test-Benachrichtigung senden'}
+          label={testMsg || t('set.test')}
           tone="blue"
-          onPress={async () => { const ok = await notify('Darna', 'Test-Benachrichtigung ✓'); setTestMsg(ok ? '✓ Gesendet' : 'Nicht verfügbar auf diesem Gerät'); setTimeout(() => setTestMsg(''), 2500); }}
+          onPress={async () => { const ok = await notify('Darna', 'Test ✓'); setTestMsg(ok ? t('set.sent') : t('set.unavail')); setTimeout(() => setTestMsg(''), 2500); }}
         />
-        <Text style={[styles.setText, { marginTop: spacing.lg }]}>Weitere Optionen (Sprache, Design) folgen in Kürze.</Text>
       </InfoModal>
 
       <View style={styles.body}>
@@ -126,7 +142,7 @@ function Shell() {
           return (
             <TouchableOpacity key={tab.key} style={styles.tabItem} activeOpacity={0.7} onPress={() => setActive(tab.key)}>
               <Text style={[styles.tabIcon, isActive && styles.tabIconActive]}>{tab.icon}</Text>
-              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>{tab.label}</Text>
+              <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]} numberOfLines={1}>{t('nav.' + tab.key)}</Text>
               {isActive && <View style={styles.tabDot} />}
             </TouchableOpacity>
           );
@@ -152,20 +168,22 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-      {onboarded === false ? (
-        <OnboardingScreen onDone={finishOnboarding} />
-      ) : onboarded === null ? (
-        <View style={[styles.body, styles.center]}>
-          <ActivityIndicator color={colors.gold} size="large" />
-        </View>
-      ) : (
-        <StoreProvider>
-          <Shell />
-        </StoreProvider>
-      )}
-    </SafeAreaView>
+    <LanguageProvider>
+      <SafeAreaView style={styles.root}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
+        {onboarded === false ? (
+          <OnboardingScreen onDone={finishOnboarding} />
+        ) : onboarded === null ? (
+          <View style={[styles.body, styles.center]}>
+            <ActivityIndicator color={colors.gold} size="large" />
+          </View>
+        ) : (
+          <StoreProvider>
+            <Shell />
+          </StoreProvider>
+        )}
+      </SafeAreaView>
+    </LanguageProvider>
   );
 }
 
@@ -204,8 +222,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   logoutText: { color: colors.textMuted, fontSize: font.small, fontWeight: '700' },
-  setLabel: { color: colors.text, fontSize: font.body, fontWeight: '800', marginBottom: spacing.xs },
+  setLabel: { color: colors.text, fontSize: font.body, fontWeight: '800', marginBottom: spacing.sm },
   setText: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginBottom: spacing.md },
+  langRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
+  langChip: { flex: 1, alignItems: 'center', paddingVertical: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceDark },
+  langChipOn: { borderColor: colors.blue, backgroundColor: '#12233f' },
+  langFlag: { fontSize: 22, marginBottom: 2 },
+  langText: { color: colors.textMuted, fontSize: font.tiny, fontWeight: '700' },
+  langTextOn: { color: colors.blueSoft },
 
   tabBar: {
     flexDirection: 'row',

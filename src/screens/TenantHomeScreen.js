@@ -3,18 +3,19 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Card, Badge } from '../components/UI';
 import { useStore } from '../store/store';
+import { useLang } from '../i18n';
 import { eur2, dmy, debtIcon } from '../utils';
 import { colors, spacing, radius, font } from '../theme';
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 11) return 'Guten Morgen';
-  if (h < 18) return 'Guten Tag';
-  return 'Guten Abend';
-}
-
 export default function TenantHomeScreen() {
   const { state, currentUser } = useStore();
+  const { t } = useLang();
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 11) return t('home.greetMorning');
+    if (h < 18) return t('home.greetDay');
+    return t('home.greetEvening');
+  };
   const tid = currentUser?.tenantId;
   const tenant = state.tenants.find((t) => t.id === tid) || null;
   const info = state.siteInfo || {};
@@ -37,10 +38,10 @@ export default function TenantHomeScreen() {
       </View>
 
       {/* Güncel dönem borçları */}
-      <Text style={styles.section}>Aktuelle Forderungen</Text>
+      <Text style={styles.section}>{t('home.currentDues')}</Text>
       <Card>
         {debts.length === 0 ? (
-          <Text style={styles.ok}>✓ Keine offenen Forderungen.</Text>
+          <Text style={styles.ok}>{t('home.noDues')}</Text>
         ) : (
           <>
             {debts.map((d) => (
@@ -55,8 +56,8 @@ export default function TenantHomeScreen() {
             ))}
             <View style={styles.totalRow}>
               <View>
-                <Text style={styles.totalLabel}>Gesamt fällig</Text>
-                {nextDue && <Text style={styles.totalDue}>bis {dmy(nextDue)}</Text>}
+                <Text style={styles.totalLabel}>{t('home.totalDue')}</Text>
+                {nextDue && <Text style={styles.totalDue}>{t('home.until')} {dmy(nextDue)}</Text>}
               </View>
               <Text style={styles.totalValue}>{eur2(total)}</Text>
             </View>
@@ -67,7 +68,7 @@ export default function TenantHomeScreen() {
       {/* Müşteri temsilcisi */}
       {info.rep && (
         <>
-          <Text style={styles.section}>Kundenbetreuer</Text>
+          <Text style={styles.section}>{t('home.rep')}</Text>
           <Card>
             <ContactRow icon="👤" label="Name" value={info.rep.name} />
             <ContactRow icon="✉️" label="E-Mail" value={info.rep.email} />
@@ -79,7 +80,7 @@ export default function TenantHomeScreen() {
       {/* Banka bilgileri */}
       {info.bank && (
         <>
-          <Text style={styles.section}>Bankverbindung</Text>
+          <Text style={styles.section}>{t('home.bank')}</Text>
           <Card>
             <ContactRow icon="🏦" label="Bank" value={info.bank.bankName} />
             <ContactRow icon="👤" label="Inhaber" value={info.bank.holder} />
@@ -89,7 +90,7 @@ export default function TenantHomeScreen() {
       )}
 
       {/* Son ödemelerim */}
-      <Text style={styles.section}>Letzte Zahlungen</Text>
+      <Text style={styles.section}>{t('home.lastPay')}</Text>
       <Card>
         {payments.length === 0 ? (
           <Text style={styles.muted}>Noch keine Zahlungen.</Text>
@@ -98,11 +99,11 @@ export default function TenantHomeScreen() {
             <View key={p.id} style={[styles.payRow, i === payments.length - 1 && { borderBottomWidth: 0 }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.payDate}>{dmy(p.at)}</Text>
-                <Text style={styles.payReceipt}>Beleg: {p.receiptNo}</Text>
+                <Text style={styles.payReceipt}>{t('home.receipt')}: {p.receiptNo}</Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={styles.payAmt}>{eur2(p.amountEur)}</Text>
-                <Text style={styles.payRest}>Rest: {eur2(p.remainingEur || 0)}</Text>
+                <Text style={styles.payRest}>{t('home.rest')}: {eur2(p.remainingEur || 0)}</Text>
               </View>
             </View>
           ))
@@ -112,7 +113,7 @@ export default function TenantHomeScreen() {
       {/* Bina yöneticisi */}
       {info.manager && (
         <>
-          <Text style={styles.section}>Hausverwaltung</Text>
+          <Text style={styles.section}>{t('home.management')}</Text>
           <Card>
             <ContactRow icon="👤" label="Name" value={info.manager.name} />
             <ContactRow icon="📞" label="Telefon" value={info.manager.phone} last />
@@ -121,7 +122,7 @@ export default function TenantHomeScreen() {
       )}
 
       {/* Duyuru & Reklam */}
-      <Text style={styles.section}>Ankündigungen & Angebote</Text>
+      <Text style={styles.section}>{t('home.ann')}</Text>
       {ads.map((a) => (
         <Card key={a.id} style={a.kind === 'ad' ? styles.adCard : null}>
           <View style={styles.annHead}>
