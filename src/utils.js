@@ -60,3 +60,14 @@ export function roleIcon(role) {
     admin: '🛡️',
   })[role] || '👤';
 }
+
+// Icon je Schulden-Kategorie (Miete, Strom, Gas ...)
+export function debtIcon(category) {
+  return ({
+    rent: '🏠',
+    electricity: '⚡',
+    gas: '🔥',
+    water: '💧',
+    other: '🧾',
+  })[category] || '🧾';
+}

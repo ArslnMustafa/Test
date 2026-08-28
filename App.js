@@ -6,6 +6,9 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Plat
 import HomeScreen from './src/screens/HomeScreen';
 import RentScreen from './src/screens/RentScreen';
 import MyRentScreen from './src/screens/MyRentScreen';
+import TenantHomeScreen from './src/screens/TenantHomeScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
+import PaymentScreen from './src/screens/PaymentScreen';
 import TenantMenuScreen from './src/screens/TenantMenuScreen';
 import MarketScreen from './src/screens/MarketScreen';
 import CraftsmenScreen from './src/screens/CraftsmenScreen';
@@ -19,22 +22,25 @@ import { colors, spacing, font, radius } from './src/theme';
 
 // Alle verfügbaren Tabs
 const TAB_DEFS = {
-  home:   { key: 'home',   label: 'Home',       icon: '🏠', screen: HomeScreen },
-  rent:   { key: 'rent',   label: 'Miete',      icon: '📋', screen: RentScreen },
-  konut:  { key: 'konut',  label: 'Konut',      icon: '🏠', screen: TenantMenuScreen },
-  myrent: { key: 'myrent', label: 'Meine Miete', icon: '🔑', screen: MyRentScreen },
-  market: { key: 'market', label: 'Markt',      icon: '🏢', screen: MarketScreen },
-  crafts: { key: 'crafts', label: 'Handwerker', icon: '👷', screen: CraftsmenScreen },
-  jobs:   { key: 'jobs',   label: 'Aufträge',   icon: '🛠️', screen: JobsScreen },
-  posta:  { key: 'posta',  label: 'Post',       icon: '✉️', screen: MessagesScreen },
-  fund:   { key: 'fund',   label: 'Fonds',      icon: '📈', screen: FundScreen },
+  home:    { key: 'home',    label: 'Home',        icon: '🏠', screen: HomeScreen },
+  rent:    { key: 'rent',    label: 'Miete',       icon: '📋', screen: RentScreen },
+  // Mieter-Modul (Wohnungsverwaltung)
+  start:   { key: 'start',   label: 'Startseite',  icon: '🏠', screen: TenantHomeScreen },
+  bildirim:{ key: 'bildirim',label: 'Mitteilungen', icon: '🔔', screen: NotificationsScreen },
+  odeme:   { key: 'odeme',   label: 'Zahlung',     icon: '💳', screen: PaymentScreen },
+  menu:    { key: 'menu',    label: 'Menü',        icon: '☰', screen: TenantMenuScreen },
+  market:  { key: 'market',  label: 'Markt',       icon: '🏢', screen: MarketScreen },
+  crafts:  { key: 'crafts',  label: 'Handwerker',  icon: '👷', screen: CraftsmenScreen },
+  jobs:    { key: 'jobs',    label: 'Aufträge',    icon: '🛠️', screen: JobsScreen },
+  posta:   { key: 'posta',   label: 'Post',        icon: '✉️', screen: MessagesScreen },
+  fund:    { key: 'fund',    label: 'Fonds',       icon: '📈', screen: FundScreen },
 };
 
 // Welche Tabs sieht welche Rolle
 const ROLE_TABS = {
   admin:   ['home', 'rent', 'posta', 'market', 'crafts', 'fund'],
   owner:   ['home', 'rent', 'posta', 'market', 'fund'],
-  tenant:  ['konut', 'myrent', 'market', 'fund'],
+  tenant:  ['start', 'bildirim', 'odeme', 'menu'],
   worker:  ['jobs', 'market'],
   company: ['jobs', 'market'],
 };

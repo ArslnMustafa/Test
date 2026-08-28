@@ -120,6 +120,28 @@ function reducer(state, action) {
         }),
       };
 
+    // ---- Zahlung eines Schuldenpostens ----
+    case 'PAY_DEBT': {
+      const items = state.debtItems || [];
+      const debt = items.find((d) => d.id === action.id);
+      if (!debt) return state;
+      const paid = debt.amountEur + debt.surchargeEur;
+      const payment = {
+        id: `pay_${Date.now()}`,
+        tenantId: debt.tenantId,
+        at: Date.now(),
+        method: 'Online',
+        receiptNo: String(Date.now()).slice(-15),
+        amountEur: paid,
+        remainingEur: 0,
+      };
+      return {
+        ...state,
+        debtItems: items.filter((d) => d.id !== action.id),
+        payments: [payment, ...(state.payments || [])],
+      };
+    }
+
     // ---- Nachrichten ----
     case 'SEND_MESSAGE':
       return { ...state, messages: [action.message, ...(state.messages || [])] };
@@ -214,6 +236,9 @@ export function StoreProvider({ children }) {
     // Aufträge: annehmen / als erledigt markieren
     acceptJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'accepted' }),
     completeJob: (id) => dispatch({ type: 'SET_JOB_STATUS', id, status: 'done' }),
+
+    // Einen Schuldenposten bezahlen (erzeugt eine Zahlung)
+    payDebt: (id) => dispatch({ type: 'PAY_DEBT', id }),
 
     // Nachricht senden (Absender = aktueller Benutzer)
     sendMessage: (toUserId, text) => {

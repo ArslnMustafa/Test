@@ -96,11 +96,10 @@ export default function TenantMenuScreen() {
   // ---- Hauptmenü ----
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Begrüßung */}
+      {/* Kopf */}
       <View style={styles.hero}>
-        <Text style={styles.heroHi}>{greeting()},</Text>
-        <Text style={styles.heroName}>{currentUser?.name}</Text>
-        <Text style={styles.heroAddr}>{tenant ? tenant.propertyName : 'Darna'}</Text>
+        <Text style={styles.heroName}>Menü</Text>
+        <Text style={styles.heroAddr}>{currentUser?.name}{tenant ? ` · ${tenant.propertyName}` : ''}</Text>
       </View>
 
       {GROUPS.map((g) => (
