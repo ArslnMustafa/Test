@@ -15,7 +15,8 @@ export const SEED = {
   // Mieter / Miet-Status (ownerId = zugehöriger Eigentümer)
   tenants: [
     { id: 't1', name: 'Ahmad K.', ownerId: 'u2', propertyName: 'Villa Dummar', status: 'paid', overdueDays: 0, overdueEur: 0, relative: 'Onkel Samir (+963 9…)', log: [] },
-    { id: 't2', name: 'Omar Said', ownerId: 'u2', propertyName: 'Apt. Al-Shahba', city: 'Aleppo', status: 'overdue', overdueDays: 12, overdueEur: 450, relative: 'Onkel Mahmoud (+963 9…)', log: [] },
+    { id: 't2', name: 'Omar Said', ownerId: 'u2', propertyName: 'Apt. Al-Shahba', city: 'Aleppo', status: 'overdue', overdueDays: 12, overdueEur: 450, relative: 'Onkel Mahmoud (+963 9…)', log: [],
+      unit: { block: 'A', floor: 8, no: 30, sqm: 95, rooms: '3+1', since: '01.01.2024', depositEur: 700, persons: 3 } },
     { id: 't3', name: 'Layla H.', ownerId: 'u2', propertyName: 'Penthouse Latakia', status: 'paid', overdueDays: 0, overdueEur: 0, relative: 'Tante Nour (+963 9…)', log: [] },
     { id: 't4', name: 'Khaled M.', ownerId: 'u2', propertyName: 'Studio Homs-Zentrum', status: 'overdue', overdueDays: 5, overdueEur: 400, relative: 'Bruder Ziad (+963 9…)', log: [] },
   ],
@@ -97,6 +98,7 @@ export const SEED = {
 
   // Geleistete Zahlungen je Mieter (Ödeme Listesi). method: Kasse | Bank | Online
   payments: [
+    { id: 'pay0', tenantId: 't2', at: Date.parse('2026-04-05T00:00:00'), method: 'Online', receiptNo: '304551277881020', amountEur: 450, remainingEur: 0 },
     { id: 'pay1', tenantId: 't2', at: Date.parse('2026-03-16T00:00:00'), method: 'Kasse', receiptNo: '269903612200919', amountEur: 850, remainingEur: 435 },
     { id: 'pay2', tenantId: 't2', at: Date.parse('2026-02-20T00:00:00'), method: 'Kasse', receiptNo: '226224575830913', amountEur: 850, remainingEur: 610 },
     { id: 'pay3', tenantId: 't2', at: Date.parse('2026-01-26T00:00:00'), method: 'Kasse', receiptNo: '215035944994416', amountEur: 850, remainingEur: 300 },
@@ -134,6 +136,42 @@ export const SEED = {
       text: 'Ihr Zahlungsrückstand beträgt heute € 946,41. Bei Nichtzahlung bis 11.06.2026 wird eine Mahnung durch unseren Anwalt versendet (Gebühr € 35). Der Betrag wird Ihrem Saldo hinzugefügt.' },
     { id: 'm4', toUserId: 'u2', fromUserId: 'u1', at: Date.parse('2026-08-20T10:25:00'),
       text: 'Sehr geehrter Herr Haddad, die Nebenkostenabrechnung für Ihre Immobilien liegt bereit. Bitte prüfen Sie den Bereich „Einnahmen / Ausgaben".' },
+  ],
+
+  // Banküberweisungen des Mieters (Banka Havalelerim)
+  transfers: [
+    { id: 'tr1', tenantId: 't2', at: Date.parse('2026-03-16T00:00:00'), amountEur: 850, iban: 'DE59 0010 0271 9096 6953 50', ref: 'Miete März 2026' },
+    { id: 'tr2', tenantId: 't2', at: Date.parse('2026-02-20T00:00:00'), amountEur: 850, iban: 'DE59 0010 0271 9096 6953 50', ref: 'Miete Februar 2026' },
+    { id: 'tr3', tenantId: 't2', at: Date.parse('2025-12-22T00:00:00'), amountEur: 600, iban: 'DE59 0010 0271 9096 6953 50', ref: 'Nebenkosten Q4' },
+  ],
+
+  // Inkasso-/Vollstreckungsakten (İcra Dosyaları)
+  inkassoFiles: [
+    { id: 'ik1', tenantId: 't2', at: Date.parse('2026-06-11T00:00:00'), caseNo: '2026/1487', amountEur: 946.41, status: 'closed', office: 'Kanzlei Al-Ameen', note: 'Rückstand beglichen, Akte geschlossen.' },
+  ],
+
+  // Gebäude-Finanzbericht (Gelir / Gider)
+  buildingFinance: {
+    period: 'August 2026',
+    income: [
+      { label: 'Mieteinnahmen', amountEur: 6400 },
+      { label: 'Nebenkosten', amountEur: 1850 },
+      { label: 'Sonstige', amountEur: 300 },
+    ],
+    expense: [
+      { label: 'Reinigung', amountEur: 900 },
+      { label: 'Strom (Allgemein)', amountEur: 420 },
+      { label: 'Wartung/Reparatur', amountEur: 1100 },
+      { label: 'Versicherung', amountEur: 260 },
+    ],
+  },
+
+  // Forderungsliste des Gebäudes (Alacak Listesi) – wer schuldet wie viel
+  receivables: [
+    { id: 'rc1', unit: 'A / 30', name: 'Omar Said',  amountEur: 450 },
+    { id: 'rc2', unit: 'A / 12', name: 'Yusuf Kaya',  amountEur: 120 },
+    { id: 'rc3', unit: 'B / 03', name: 'Nour Haddad', amountEur: 0 },
+    { id: 'rc4', unit: 'B / 21', name: 'Sami Berri',  amountEur: 300 },
   ],
 
   // Aktuell angemeldeter Benutzer (null = ausgeloggt, zeigt Login-Screen)

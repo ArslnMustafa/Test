@@ -5,7 +5,7 @@ import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SEED } from '../data/seed';
 
-const STORAGE_KEY = 'darna:db:v2';
+const STORAGE_KEY = 'darna:db:v3';
 
 // Kleine ID-Hilfe für neue Datensätze
 const newId = (prefix) => `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;

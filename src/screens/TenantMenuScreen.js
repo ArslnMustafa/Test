@@ -97,7 +97,7 @@ export default function TenantMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.detailTitle}>{activeItem.icon}  {activeItem.label}</Text>
 
-        {renderDetail(view, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen })}
+        {renderDetail(view, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen })}
 
         <View style={{ height: spacing.xl }} />
 
@@ -184,7 +184,172 @@ const STATUS_LABEL = {
 };
 
 // Inhalt je Menüpunkt (mit Daten gefüllt oder Platzhalter)
-function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen }) {
+function renderDetail(key, { state, tid, tenant, setPayOpen, myMessages, nameFor, myDebts, myPayments, myJobs, setMaengelOpen }) {
+  // --- Gebäude: Ankündigungen & Werbung ---
+  if (key === 'news') {
+    const list = state.announcements || [];
+    if (list.length === 0) return <ComingSoon note="Keine Ankündigungen." />;
+    return (
+      <View>
+        {list.map((a) => (
+          <Card key={a.id} style={a.kind === 'ad' ? { borderColor: '#4a380f', backgroundColor: '#2a1f08' } : null}>
+            <View style={styles.between}>
+              <Text style={styles.cardTitle}>{a.title}</Text>
+              <Badge label={a.kind === 'ad' ? 'Werbung' : a.kind === 'warning' ? 'Wichtig' : 'Info'} tone={a.kind === 'ad' ? 'gold' : a.kind === 'warning' ? 'red' : 'blue'} />
+            </View>
+            <Text style={styles.bodyText}>{a.text}</Text>
+            <Text style={styles.jSub}>{dmy(a.at)}</Text>
+          </Card>
+        ))}
+      </View>
+    );
+  }
+
+  // --- Gebäude: Infokarte (eigene Wohnung) ---
+  if (key === 'infocard') {
+    const u = tenant?.unit;
+    if (!u) return <ComingSoon note="Keine Wohnungsdaten hinterlegt." />;
+    return (
+      <Card>
+        <KV label="Block" value={u.block} />
+        <KV label="Etage" value={String(u.floor)} />
+        <KV label="Wohnung Nr." value={String(u.no)} />
+        <KV label="Zimmer" value={u.rooms} />
+        <KV label="Fläche" value={`${u.sqm} m²`} />
+        <KV label="Bewohner" value={`${u.persons} Personen`} />
+        <KV label="Mieter seit" value={u.since} />
+        <KV label="Kaution" value={eur2(u.depositEur)} last />
+      </Card>
+    );
+  }
+
+  // --- Gebäude: Aktueller Stand ---
+  if (key === 'status') {
+    const openDebt = (myDebts || []).reduce((a, d) => a + d.amountEur + d.surchargeEur, 0);
+    const lastPay = (myPayments || [])[0];
+    const openMaengel = (myJobs || []).filter((j) => j.status !== 'done').length;
+    return (
+      <View>
+        <View style={styles.tiles}>
+          <Tile label="Offener Betrag" value={eur2(openDebt)} tone={openDebt > 0 ? 'red' : 'green'} />
+          <Tile label="Offene Mängel" value={String(openMaengel)} tone="gold" />
+        </View>
+        <Card>
+          <KV label="Letzte Zahlung" value={lastPay ? `${eur2(lastPay.amountEur)} · ${dmy(lastPay.at)}` : '—'} />
+          <KV label="Zahlungen gesamt" value={String((myPayments || []).length)} />
+          <KV label="Mietstatus" value={tenant?.status === 'overdue' ? 'Überfällig' : 'Aktuell'} last />
+        </Card>
+      </View>
+    );
+  }
+
+  // --- Gebäude: Einnahmen / Ausgaben ---
+  if (key === 'incexp') {
+    const f = state.buildingFinance;
+    if (!f) return <ComingSoon />;
+    const inc = f.income.reduce((a, x) => a + x.amountEur, 0);
+    const exp = f.expense.reduce((a, x) => a + x.amountEur, 0);
+    return (
+      <View>
+        <Text style={styles.periodLabel}>{f.period}</Text>
+        <Card>
+          <Text style={styles.blockTitle}>Einnahmen</Text>
+          {f.income.map((x, i) => <KV key={i} label={x.label} value={eur2(x.amountEur)} />)}
+          <KV label="Summe Einnahmen" value={eur2(inc)} strong />
+        </Card>
+        <Card>
+          <Text style={styles.blockTitle}>Ausgaben</Text>
+          {f.expense.map((x, i) => <KV key={i} label={x.label} value={eur2(x.amountEur)} />)}
+          <KV label="Summe Ausgaben" value={eur2(exp)} strong />
+        </Card>
+        <Card style={{ backgroundColor: colors.surfaceDark }}>
+          <KV label="Saldo" value={eur2(inc - exp)} strong />
+        </Card>
+      </View>
+    );
+  }
+
+  // --- Gebäude: Forderungsliste ---
+  if (key === 'receivables') {
+    const list = state.receivables || [];
+    const total = list.reduce((a, r) => a + r.amountEur, 0);
+    return (
+      <View>
+        {list.map((r) => (
+          <Card key={r.id} style={styles.rcRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{r.name}</Text>
+              <Text style={styles.jSub}>Wohnung {r.unit}</Text>
+            </View>
+            <Text style={[styles.rcAmt, r.amountEur > 0 ? { color: '#f87171' } : { color: colors.greenText }]}>{eur2(r.amountEur)}</Text>
+          </Card>
+        ))}
+        <Card><KV label="Gesamtforderung" value={eur2(total)} strong /></Card>
+      </View>
+    );
+  }
+
+  // --- Wohnung: Banküberweisungen ---
+  if (key === 'transfers') {
+    const list = (state.transfers || []).filter((t) => t.tenantId === tid).sort((a, b) => b.at - a.at);
+    if (list.length === 0) return <ComingSoon note="Keine Banküberweisungen." />;
+    return (
+      <View>
+        {list.map((t) => (
+          <Card key={t.id}>
+            <View style={styles.between}>
+              <Text style={styles.cardTitle}>{dmy(t.at)}</Text>
+              <Text style={styles.rcAmt}>{eur2(t.amountEur)}</Text>
+            </View>
+            <KV label="Verwendung" value={t.ref} />
+            <KV label="IBAN" value={t.iban} last />
+          </Card>
+        ))}
+      </View>
+    );
+  }
+
+  // --- Wohnung: Online-Zahlungen ---
+  if (key === 'online') {
+    const list = (state.payments || []).filter((p) => p.tenantId === tid && p.method === 'Online').sort((a, b) => b.at - a.at);
+    if (list.length === 0) return <ComingSoon note={'Noch keine Online-Zahlungen. Zahlungen über den Tab „Zahlung“ erscheinen hier.'} />;
+    return (
+      <View>
+        {list.map((p) => (
+          <Card key={p.id}>
+            <View style={styles.between}>
+              <Text style={styles.cardTitle}>{dmy(p.at)}</Text>
+              <Text style={[styles.rcAmt, { color: colors.greenText }]}>{eur2(p.amountEur)}</Text>
+            </View>
+            <KV label="Beleg-Nr." value={p.receiptNo} last />
+          </Card>
+        ))}
+      </View>
+    );
+  }
+
+  // --- Wohnung: Inkasso-Akten ---
+  if (key === 'inkasso') {
+    const list = (state.inkassoFiles || []).filter((f) => f.tenantId === tid).sort((a, b) => b.at - a.at);
+    if (list.length === 0) return <ComingSoon note="Keine Inkasso-Akten. Sehr gut!" />;
+    return (
+      <View>
+        {list.map((f) => (
+          <Card key={f.id} style={f.status === 'open' ? { borderColor: colors.redBorder } : null}>
+            <View style={styles.between}>
+              <Text style={styles.cardTitle}>Akte {f.caseNo}</Text>
+              <Badge label={f.status === 'open' ? 'Offen' : 'Geschlossen'} tone={f.status === 'open' ? 'red' : 'green'} />
+            </View>
+            <KV label="Datum" value={dmy(f.at)} />
+            <KV label="Betrag" value={eur2(f.amountEur)} />
+            <KV label="Kanzlei" value={f.office} last />
+            {!!f.note && <Text style={styles.bodyText}>{f.note}</Text>}
+          </Card>
+        ))}
+      </View>
+    );
+  }
+
   // Schaden melden + Status der eigenen Meldungen
   if (key === 'maengel') {
     return (
@@ -350,6 +515,25 @@ function renderDetail(key, { tenant, setPayOpen, myMessages, nameFor, myDebts, m
   return <ComingSoon />;
 }
 
+function KV({ label, value, strong, last }) {
+  return (
+    <View style={[styles.kvRow, last && { borderBottomWidth: 0 }]}>
+      <Text style={styles.kvLabel}>{label}</Text>
+      <Text style={[styles.kvValue, strong && { color: colors.goldSoft, fontWeight: '800' }]}>{value}</Text>
+    </View>
+  );
+}
+
+function Tile({ label, value, tone }) {
+  const c = tone === 'red' ? '#f87171' : tone === 'green' ? colors.greenText : tone === 'gold' ? colors.goldSoft : colors.text;
+  return (
+    <View style={styles.tile}>
+      <Text style={[styles.tileValue, { color: c }]}>{value}</Text>
+      <Text style={styles.tileLabel}>{label}</Text>
+    </View>
+  );
+}
+
 function TotalRow({ label, value, strong }) {
   return (
     <View style={styles.totalRow}>
@@ -405,6 +589,22 @@ const styles = StyleSheet.create({
   jSub: { color: colors.textFaint, fontSize: font.tiny, marginTop: 1 },
   jDesc: { color: colors.textMuted, fontSize: font.small, lineHeight: 18, marginBottom: spacing.sm },
   jStatus: { color: colors.blueSoft, fontSize: font.small, fontWeight: '600' },
+  bodyText: { color: colors.textMuted, fontSize: font.small, lineHeight: 19, marginTop: spacing.sm },
+
+  kvRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border, gap: spacing.md },
+  kvLabel: { color: colors.textMuted, fontSize: font.small },
+  kvValue: { color: colors.text, fontSize: font.small, fontWeight: '700', flex: 1, textAlign: 'right' },
+
+  blockTitle: { color: colors.text, fontSize: font.body, fontWeight: '800', marginBottom: spacing.xs },
+  periodLabel: { color: colors.textMuted, fontSize: font.small, fontWeight: '700', marginHorizontal: spacing.lg, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+
+  tiles: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.lg, marginBottom: spacing.sm },
+  tile: { flex: 1, backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.md, alignItems: 'center' },
+  tileValue: { fontSize: font.h2, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  tileLabel: { color: colors.textMuted, fontSize: font.tiny, marginTop: 2 },
+
+  rcRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  rcAmt: { color: colors.text, fontSize: font.h3, fontWeight: '800', fontVariant: ['tabular-nums'] },
   debtLine: { color: '#f87171', fontSize: font.h3, fontWeight: '800' },
   debtSub: { color: colors.textMuted, fontSize: font.small, marginBottom: spacing.md },
   ok: { color: colors.greenText, fontSize: font.body, fontWeight: '600' },
